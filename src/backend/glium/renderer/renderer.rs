@@ -10,26 +10,48 @@ use std::collections::HashMap;
 use super::buffer::*;
 use super::font::*;
 use super::pipeline::*;
+use super::fxaa::Fxaa;
 
 pub struct GLRenderer {
     pub display      : Display,
-    pub render_buffer: RenderBuffer,
-    pub depth_buffer : DepthRenderBuffer,
+    pub render_buffer: Texture2d,
+    pub depth_buffer : DepthTexture2d,
     pub font_set : FontSet,
     pub data_buffer  : DataBuffer,
     pub shader_buffer: GLShaderBuffer,
+    pub fxaa: Fxaa,
+    pub fxaa_enable: bool,
 }
 
 impl GLRenderer {
     pub fn new(config: Config, display: Display) -> Self {
-        let render_buffer = RenderBuffer::new(&display, UncompressedFloatFormat::F32F32F32F32, config.size.width as u32, config.size.height as u32).unwrap();
-        let depth_buffer = DepthRenderBuffer::new(&display, DepthFormat::F32, config.size.width as u32, config.size.height as u32).unwrap();
+        let w = config.size.height as u32;
+        let h = config.size.width as u32;
+
+        let render_buffer = Texture2d::empty_with_format(
+            &display,
+            glium::texture::UncompressedFloatFormat::F32F32F32F32,
+            glium::texture::MipmapsOption::NoMipmap,
+            w,
+            h,
+        ).unwrap();
+
+        let depth_buffer = DepthTexture2d::empty_with_format(
+            &display, 
+            DepthFormat::F32, 
+            MipmapsOption::NoMipmap,
+            w, 
+            h
+        ).unwrap();
+
         Self {
             render_buffer,
             depth_buffer,
             font_set: FontSet::new(),
             data_buffer: Default::default(),
             shader_buffer: GLShaderBuffer::new(&display),
+            fxaa: Fxaa::new(&display),
+            fxaa_enable: false,
             display,
         }
     }
@@ -202,14 +224,14 @@ impl Renderer for GLRenderer {
         let parameters: DrawParameters = DrawParameters {
             depth: glium::Depth {
                 test: glium::draw_parameters::DepthTest::Overwrite,
-                write: true,
+                write: false,
                 ..Default::default()
             },
             blend: glium::Blend::alpha_blending(),
             ..Default::default()
         };
 
-        let mut frame = SimpleFrameBuffer::with_depth_buffer(&self.display, &self.render_buffer, &self.depth_buffer).unwrap();
+        let mut frame = SimpleFrameBuffer::new(&self.display, &self.render_buffer).unwrap();
 
         for render_layer in &self.data_buffer.canvas_data.data {
             if let Some(graphics) = &render_layer.gragphics { 
@@ -236,8 +258,30 @@ impl Renderer for GLRenderer {
         }
     }
 
+    fn anti_aliasing(&mut self) {
+        let (w,h):(f32,_) = self.display.gl_window().window().inner_size().into();
+
+        let mut frame = SimpleFrameBuffer::with_depth_buffer(&self.display, &self.fxaa.render_buffer, &self.fxaa.depth_buffer).unwrap();
+
+        frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
+
+        frame.draw(
+            &self.fxaa.vertex_buffer, 
+            &self.fxaa.index_buffer,
+            &self.fxaa.fxaa,
+            &uniform!{ resolution: [w,h], tex: &self.render_buffer}, 
+            &Default::default()).unwrap();
+        
+        self.fxaa_enable = true;
+    }
+
     fn swap_buffer(&mut self)  {
-        let frame = SimpleFrameBuffer::with_depth_buffer(&self.display, &self.render_buffer, &self.depth_buffer).unwrap();
+        let frame = if self.fxaa_enable {
+            self.fxaa_enable = false;
+            SimpleFrameBuffer::new(&self.display, &self.fxaa.render_buffer).unwrap()
+        } else {
+            SimpleFrameBuffer::new(&self.display, &self.render_buffer).unwrap()
+        };
 
         let target = self.display.draw();
 

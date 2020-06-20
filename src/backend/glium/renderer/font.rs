@@ -70,7 +70,7 @@ pub fn load_text (text: &Text,font: &Font, display: &glium::Display) -> TextData
             data: Cow::Owned(vec![0u8; (w as usize) * (h as usize)]),
             width: w,
             height: h,
-            format: glium::texture::ClientFormat::U8,
+            format: glium::texture::ClientFormat::U8
         },
         glium::texture::UncompressedFloatFormat::U8,
         glium::texture::MipmapsOption::NoMipmap,

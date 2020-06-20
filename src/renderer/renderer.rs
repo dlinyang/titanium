@@ -14,6 +14,6 @@ pub trait Renderer {
     fn clear(&mut self);
     fn render_scene(&mut self);
     fn render_canvas(&mut self);
-    //fn render(&mut self, render_Data);
+    fn anti_aliasing(&mut self);
     fn swap_buffer(&mut self);
 }

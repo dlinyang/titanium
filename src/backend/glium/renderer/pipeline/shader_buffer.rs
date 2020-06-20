@@ -48,7 +48,7 @@ impl GLShaderBuffer {
         let pure_color = Program::from_source(
             display, vertex_shader.as_str(), pure_color_code.as_str(), None
         ).unwrap();
-        
+
         let mut shaders = HashMap::new();
 
         shaders.insert("Color Canvas".into(), color_canvas);

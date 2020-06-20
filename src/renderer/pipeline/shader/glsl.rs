@@ -50,3 +50,7 @@ pub fn color_canvas() -> String {
 pub fn image_canvas() -> String {
     String::from(include_str!("glsl/image_canvas.glsl"))
 }
+
+pub fn fxaa() -> String {
+    String::from(include_str!("glsl/fxaa.glsl"))
+}
