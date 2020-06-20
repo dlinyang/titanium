@@ -1,0 +1,32 @@
+digraph G {
+    label = "User Interface";
+
+    subgraph cluster0 {
+        label = "widget"
+        shape = box
+        style = "filled,rounded"
+        node[shape = box,style = filled,color = white]
+        Button Graphics Text
+    }
+
+    subgraph cluster1 {
+        label = "property"
+        shape = box
+        style = "filled, rounded"
+        node [shape = box, style = filled, color = white]
+        Positon Width Height Alpha
+    }
+
+    subgraph cluster2 {
+        label = "Primetype"
+        shape = box
+        style = "filled, rounded"
+        node [shape = box, style = filled, color = white]
+        Circle Triangle Rectangle RoundedRectangle
+    }
+
+
+    node [shape = box, style = "filled,rounded"]
+    edge [style = dashed ]
+        Canvas -> Layer -> Widget -> {Text,Graphics,Button} -> Property -> {Alpha,Height,Width,Positon}
+}

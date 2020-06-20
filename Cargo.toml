@@ -1,0 +1,24 @@
+[package]
+name = "titanium"
+version = "0.1.0"
+authors = ["ydl"]
+edition = "2018"
+license = "GPLv2/Apache-2.0"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "titanium"
+path = "src/lib.rs"
+
+[dependencies]
+rmu = { git = "https://github.com/dlinyang/rmu", version = "0.1.0" }
+glium = { version = "0.27.0", optional = true }
+
+
+[dependencies.rusttype]
+version = "0.9.1"
+features = ["gpu_cache"]
+
+[features]
+default = ["opengl_glium"]
+opengl_glium = ["glium"]

@@ -1,0 +1,53 @@
+digraph G {
+    subgraph cluster0 {
+        label = "Object";
+        shape = box;
+        style = "rounded,filled";
+        node [shape = box, style = "filled", color = white]
+        Mesh  Material
+    }
+
+    subgraph cluster1 {
+        label = "Mesh"
+        shape = box;
+        style = "rounded,filled";
+        node [shape = box, style = filled, color = white]
+        Vertex "Edge" Face
+    }
+
+    subgraph cluster2 {
+        label = "Material";
+        shape = box;
+        style = "rounded,filled"
+        node [shape = box, style = filled, color = white]
+        Color Type
+    }
+
+    subgraph cluster3 {
+        label = "World";
+        shape = box;
+        style = "rounded,filled";
+        node [shape = box, style = filled, color = white]
+        Position Rotation Scale
+    }
+
+    subgraph cluster4  {
+        label = "Light"
+        shape = box;
+        style = "rounded,filled"
+        node [shape = box, style = filled, color = white]
+        PointLight ParallelLight AreaLight 
+    }
+
+    node [shape = box, style = "rounded,filled", color = grey];
+        ModelFormat
+        SceneFormat
+        Light
+        Transform
+    edge [style = dashed]
+        Mesh -> {Vertex, "Edge", Face}
+        Material -> {Color, Type}
+        Transform -> {Position,Scale,Rotation}
+        ModelFormat -> {Mesh Material}
+        SceneFormat -> {Mesh Material Transform, Light}
+}

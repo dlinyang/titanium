@@ -1,0 +1,53 @@
+digraph G {
+    label = "Titanium White";
+
+    node [shape = box, style = "filled,rounded"];
+        Application User_Interface
+
+    subgraph cluster {
+        label = Component;
+        style = filled;
+        color = grey;
+        node [shape = box, style = "filled"]
+        Renderer;
+        Physics;
+        Event;
+        Script;
+    } 
+
+    subgraph cluster0 {
+        label = Resource;
+        style = filled;
+        
+        /* Scence*/
+        subgraph cluster00 {
+            label = "Scene"
+            style = filled;
+            color = grey;
+            node [shape= box, style = "filled" , color = white]
+            Object;
+            Light;
+        }
+
+        subgraph cluster02 {
+            label = "Canvas";
+            style = filled;
+            color = grey;
+            node [shape = box, style = "filled", color = white]
+            Layer;
+        }
+    }
+
+    subgraph cluster1 {
+        label = "Physics"
+        PyhsicsObject
+        RigidBody;
+    }
+
+    edge []
+        Application -> subgraph cluster {};
+        Renderer -> subgraph cluster0 {};
+        User_Interface -> {Event,Renderer};
+    edge [style = "dashed"]
+        Application -> User_Interface;
+}
