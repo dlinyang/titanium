@@ -108,8 +108,8 @@ impl Widget for Input {
         let width = self.area.width();
         let height = self.area.height();
 
-        let graphics = Rectangle::create(anchor, width, height, self.color, graphics::GraphicsType::Polygon);
-        let text = text::Text::create(self.input.clone(), self.font.clone(), anchor, Size::uniform(self.font_size), width, self.font_color);
+    let graphics = Rectangle::create(anchor, width, height, self.color, graphics::GraphicsType::PolygonFill);
+    let text = text::Text::create(self.input.clone(), self.font.clone(), anchor, Size::uniform(self.font_size), width, self.font_color);
 
         Layer::with_id(self.id)
               .with_graphics(graphics.into())

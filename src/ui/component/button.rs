@@ -137,7 +137,7 @@ impl Widget for Button {
         let text_anchor = [self.area.top_left_point[0] + ( width -  text_width )  * 0.5, self.area.top_left_point[1]];
 
         Layer::with_id(self.id)
-              .with_graphics(Rectangle::create(self.area.top_left_point, width, height, color, graphics::GraphicsType::Polygon).into())
+              .with_graphics(Rectangle::create(self.area.top_left_point, width, height, color, graphics::GraphicsType::PolygonFill).into())
               .with_text(
                   text::Text::create(
                       self.label.clone(), 

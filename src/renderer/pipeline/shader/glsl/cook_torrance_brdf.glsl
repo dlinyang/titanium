@@ -80,10 +80,7 @@ void main() {
         vec3 lo = (kd * material.albedo / PI + specular) * radiance * NL;
 
         vec3 ambient = vec3(0.03) * material.albedo * material.ao;
-        vec3 color = ambient + lo;
-        color = color / (color + vec3(1.0));
-        color = pow(color, vec3(1.0 / 2.2));
-        f_color = f_color + color;
+        f_color = f_color + ambient + lo;
     }
     color_out = vec4(f_color,1.0);
 }

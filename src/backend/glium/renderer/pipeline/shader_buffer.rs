@@ -13,7 +13,7 @@ pub struct GLShaderBuffer {
 
 impl GLShaderBuffer {
     pub fn new(display: &Display) -> Self {
-        let version = glsl_version(4, 60);
+        let version = glsl_version(4, 50);
 
         let canvas_vert = glsl(version.clone(), String::new(), canvas_vert());
         let canvas_code = glsl(version.clone(), String::new(), color_canvas());

@@ -148,8 +148,10 @@ pub struct TextData {
     pub material: Material,
 }
 
+use glium::index::NoIndices;
+
 pub struct GraphicsData {
     pub vertex_buffer: VertexBuffer<Position>,
-    pub indices: IndexBuffer<u32>,
+    pub indices: NoIndices,
     pub material: Material,
 }

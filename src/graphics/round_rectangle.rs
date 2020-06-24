@@ -24,9 +24,3 @@ impl RoundRectangle {
         }
     }
 }
-
-fn round_rectangle(position: Vec2f, width: f32, height: f32, radius: f32) -> Vec<Position> {
-    let pos = Vec::new();
-
-    pos
-}

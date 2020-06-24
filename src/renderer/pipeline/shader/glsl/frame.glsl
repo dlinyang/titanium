@@ -1,7 +1,11 @@
 precision mediump float;
 
 uniform vec2 resolution;
-uniform sampler2D tex;
+uniform sampler2D scene;
+uniform sampler2D canvas;
+uniform bool aa_enable;
+uniform float gamma;
+uniform bool hdr_enable;
 
 in vec2 v_tex_coordinate;
 
@@ -54,12 +58,30 @@ vec4 fxaa(sampler2D tex, vec2 fragCoord, vec2 resolution, vec2 v_rgbNW, vec2 v_r
 }
 
 void main() {
-  vec2 fragCoord = v_tex_coordinate * resolution;
-  vec2 inverseVP = 1.0 / resolution.xy;
-  mediump vec2 v_rgbNW = (fragCoord + vec2(-1.0, -1.0)) * inverseVP;
-  mediump vec2 v_rgbNE = (fragCoord + vec2(1.0, -1.0)) * inverseVP;
-  mediump vec2 v_rgbSW = (fragCoord + vec2(-1.0, 1.0)) * inverseVP;
-  mediump vec2 v_rgbSE = (fragCoord + vec2(1.0, 1.0)) * inverseVP;
-  mediump vec2 v_rgbM = vec2(fragCoord * inverseVP);
-  color_out = fxaa(tex, fragCoord, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+  if(aa_enable){
+    vec2 fragCoord = v_tex_coordinate * resolution;
+    vec2 inverseVP = 1.0 / resolution.xy;
+    mediump vec2 v_rgbNW = (fragCoord + vec2(-1.0, -1.0)) * inverseVP;
+    mediump vec2 v_rgbNE = (fragCoord + vec2(1.0, -1.0)) * inverseVP;
+    mediump vec2 v_rgbSW = (fragCoord + vec2(-1.0, 1.0)) * inverseVP;
+    mediump vec2 v_rgbSE = (fragCoord + vec2(1.0, 1.0)) * inverseVP;
+    mediump vec2 v_rgbM = vec2(fragCoord * inverseVP);
+    color_out = fxaa(scene, fragCoord, resolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+  } else {
+    color_out = texture(scene, v_tex_coordinate);
+  }
+
+  if(hdr_enable) {
+    vec3 hdr_color = color_out.rgb;
+    vec3 mapped = hdr_color / (hdr_color + vec3(1.0));
+    color_out = vec4(pow(mapped, vec3(1.0/gamma)), 1.0);
+  }
+  
+  vec4 canvas_color = texture(canvas, v_tex_coordinate);
+
+  if(canvas_color.a >= 1.0){
+    color_out = canvas_color;
+  } else {
+    color_out = color_out + canvas_color;
+  }
 }

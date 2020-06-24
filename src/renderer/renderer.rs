@@ -12,8 +12,12 @@ pub trait Renderer {
     fn update_scene(&mut self, scene: &mut RenderScene);
     fn update_light(&mut self, name: &String, light: &Light);
     fn clear(&mut self);
+    fn clear_scene(&mut self);
+    fn clear_canvas(&mut self);
     fn render_scene(&mut self);
     fn render_canvas(&mut self);
-    fn anti_aliasing(&mut self);
     fn swap_buffer(&mut self);
+    fn set_anti_aliasing(&mut self,enable: bool);
+    fn set_hdr(&mut self, enable: bool);
+    fn set_gamma(&mut self, gamma: f32);
 }

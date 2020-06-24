@@ -51,6 +51,6 @@ pub fn image_canvas() -> String {
     String::from(include_str!("glsl/image_canvas.glsl"))
 }
 
-pub fn fxaa() -> String {
-    String::from(include_str!("glsl/fxaa.glsl"))
+pub fn frame() -> String {
+    String::from(include_str!("glsl/frame.glsl"))
 }

@@ -1,6 +1,6 @@
 in layout(location = 0) vec3 position;
 in layout(location = 1) vec3 normal;
-in layout(location = 2) vec3 tex_coordinate;
+in layout(location = 2) vec2 tex_coordinate;
 
 out vec3 frag_pos;
 out vec3 v_normal;

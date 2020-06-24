@@ -99,7 +99,7 @@ impl Widget for Panel {
         let height = self.area.height();
 
         Layer::with_id( self.id)
-              .with_graphics(Rectangle::create(anchor, width, height, self.color, graphics::GraphicsType::Polygon).into())
+              .with_graphics(Rectangle::create(anchor, width, height, self.color, graphics::GraphicsType::PolygonFill).into())
     }
 
     fn id(&self) -> u64 {
