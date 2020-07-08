@@ -1,18 +1,24 @@
 use glium::program::{Program, Binary};
 use glium::Display;
 
-use crate::renderer::pipeline::ShaderBuffer;
+use crate::renderer::pipeline::*;
 use crate::renderer::pipeline::shader::glsl::*;
 
 use std::collections::HashMap;
 
 
 pub struct GLShaderBuffer {
-    pub shaders: HashMap<String,Program>,
+    pub shaders: HashMap<String,RenderPass<Program>>,
 }
 
 impl GLShaderBuffer {
-    pub fn new(display: &Display) -> Self {
+    pub fn new() -> Self {
+        Self {
+            shaders: HashMap::new(),
+        }
+    }
+
+    pub fn load_bulidin(&mut self,display: &Display) {
         let version = glsl_version(4, 50);
 
         let canvas_vert = glsl(version.clone(), String::new(), canvas_vert());
@@ -49,24 +55,20 @@ impl GLShaderBuffer {
             display, vertex_shader.as_str(), pure_color_code.as_str(), None
         ).unwrap();
 
-        let mut shaders = HashMap::new();
-
-        shaders.insert("Color Canvas".into(), color_canvas);
-        shaders.insert("Image Canvas".into(), image_canvas);
-        shaders.insert("Font Canvas".into(), font_canvas);
-        shaders.insert("Blinn Phong BRDF".into(), blinn_phong_brdf);
-        shaders.insert("Cook Torrance BRDF".into(), cook_torrance_brdf);
-        shaders.insert("Pure Color Material".into(), pure_color);
-
-        GLShaderBuffer {
-            shaders,
-        }
+        // canvas render pass need turn off depth write and depth test 
+        self.shaders.insert("Color Canvas".into(), RenderPass::pass(color_canvas, None).with_depth(ZTest::Always, false));
+        self.shaders.insert("Image Canvas".into(), RenderPass::pass(image_canvas, None).with_depth(ZTest::Always, false));
+        self.shaders.insert("Font Canvas".into(), RenderPass::pass(font_canvas, None).with_depth(ZTest::Always, false));
+        //
+        self.shaders.insert("Blinn Phong BRDF".into(), RenderPass::pass(blinn_phong_brdf, None));
+        self.shaders.insert("Cook Torrance BRDF".into(), RenderPass::pass(cook_torrance_brdf, None));
+        self.shaders.insert("Pure Color Material".into(), RenderPass::pass(pure_color, None));
     }
 }
 
 impl ShaderBuffer<Program> for GLShaderBuffer {
 
-    fn shader(&self, shader_name: &String) -> Option<&Program> {
+    fn shader(&self, shader_name: &String) -> Option<&RenderPass<Program>> {
         self.shaders.get(shader_name)
     }
 }

@@ -1,3 +1,4 @@
+/// titanium is a Graphics Application Utility
 pub mod application;
 
 pub mod base;

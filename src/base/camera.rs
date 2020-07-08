@@ -95,11 +95,9 @@ pub fn camera(look_from: Vector3, look_at: Vector3, vup: Vector3) -> Mat4f {
     ,[p0  , p1  , p2  , 1.0]]
 }
 
-/// perspective transfrom is non-linear transform.
-/// orthogonal transform is linear transomt.
-/// martix transform is linear trnsform,
-/// matrix can not impletementperspective tansform. 
-/// but graphic api will divide x,y,z by w    
+/// Perspective transfrom is non-linear transform and orthogonal transform is linear transomt.
+/// Although martix transform is linear trnsform, graphic api will divide x,y,z by w.
+
  pub fn perspective(fov: f32, far: f32, near: f32, aspect_radio: f32) -> Mat4f {
      let f = 1.0/(fov/2.0).tan();
      [[f * aspect_radio , 0.0,            0.0           ,  0.0]

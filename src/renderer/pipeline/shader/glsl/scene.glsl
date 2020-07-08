@@ -2,7 +2,6 @@ precision mediump float;
 
 uniform vec2 resolution;
 uniform sampler2D scene;
-uniform sampler2D canvas;
 uniform bool aa_enable;
 uniform float gamma;
 uniform bool hdr_enable;
@@ -74,14 +73,6 @@ void main() {
   if(hdr_enable) {
     vec3 hdr_color = color_out.rgb;
     vec3 mapped = hdr_color / (hdr_color + vec3(1.0));
-    color_out = vec4(pow(mapped, vec3(1.0/gamma)), 1.0);
-  }
-  
-  vec4 canvas_color = texture(canvas, v_tex_coordinate);
-
-  if(canvas_color.a >= 1.0){
-    color_out = canvas_color;
-  } else {
-    color_out = color_out + canvas_color;
+    color_out = vec4(pow(mapped, vec3(1.0/gamma)), color_out.a);
   }
 }

@@ -51,6 +51,10 @@ pub fn image_canvas() -> String {
     String::from(include_str!("glsl/image_canvas.glsl"))
 }
 
-pub fn frame() -> String {
-    String::from(include_str!("glsl/frame.glsl"))
+pub fn scene() -> String {
+    String::from(include_str!("glsl/scene.glsl"))
+}
+
+pub fn canvas() -> String {
+    String::from(include_str!("glsl/canvas.glsl"))
 }

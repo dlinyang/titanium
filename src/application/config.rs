@@ -1,5 +1,6 @@
 use crate::base::utils::Size;
 
+/// use this struct to Configure Application
 #[derive(Debug,Clone)]
 pub struct Config {
     pub name      : String,
@@ -28,6 +29,6 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self::create("Titanium White".to_string(), 1240.0, 720.0)
+        Self::create("Titanium".to_string(), 1240.0, 720.0)
     }
 }

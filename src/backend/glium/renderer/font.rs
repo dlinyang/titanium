@@ -7,18 +7,6 @@ use crate::renderer::canvas::text::Text;
 
 use std::borrow::Cow;
 
-pub fn is_chinese_character(c: char) -> bool {
-    let a = c as i32;
-
-    match a {
-        0x4e00..=0x9fffi32 => true,
-        0x3400..=0x4dffi32 => true,
-        0x20000..=0x2a5dfi32 => true,
-        0x2f800..=0x2fa1fi32 => true,
-        _ => false
-    }
-}
-
 fn layout_paragraph<'a>(font: &'a Font, scale: Scale, width: u32, text: &str) -> Vec<PositionedGlyph<'a>> {
     let mut result = Vec::new();
 

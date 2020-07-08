@@ -26,13 +26,13 @@ impl Points {
 
     pub fn to_graphics(&self) -> Graphics {
         Graphics {
-            positions: self.get_position(),
+            positions: self.positions(),
             material: color_canvas(self.color),
             graphics_type: GraphicsType::Points,
         }
     }
 
-    pub fn get_position(&self) -> Vec<Position> {
+    pub fn positions(&self) -> Vec<Position> {
 
         let mut result = Vec::new();
 

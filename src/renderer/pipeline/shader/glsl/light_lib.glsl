@@ -1,43 +1,65 @@
 struct Light {
-    bool is_position;
-    bool is_range;
-    vec3 color;
-    vec3 position;
-    vec3 direction;
+    vec4 color_flux;
+    vec4 position;
+    vec4 direction_type;
     float cut_off;
     float outer_cut_off;
     float linear;
     float quadratic;
 };
 
-uniform Light[LIGHTS_MAX_NUMBER] light;
+#define l_color color_flux.rgb
+#define l_position position.xyz
+#define l_direction direction_type.xyz
+#define l_type direction_type.w
+
+#define Point 0.0
+#define Spot  1.0
+#define Parallel 2.0
+
+layout (std140) uniform Lights{
+    Light[LIGHTS_MAX_NUMBER] light;
+};
+
 uniform int lights_count;
 uniform vec3 view_position;
+uniform bool hdr_enable;
+uniform float gamma;
 
 vec3 light_direction(Light light, vec3 frag_position) {
-    if(light.is_position){
-        return normalize(light.position - frag_position);
+    if(light.l_type != Parallel ){
+        return normalize(light.l_position - frag_position);
     } else {
-        return normalize(-light.direction);
+        return normalize(-light.l_direction);
     }
 }
 
 vec3 light_color(Light light, vec3 direction) {
-    if(light.is_range) {
-        float theta = dot(-direction,normalize(light.direction));
+    if(light.l_type == Spot) {
+        float theta = dot(-direction,normalize(light.l_direction));
         float epsilon = light.cut_off - light.outer_cut_off;
         float intensity = clamp( (theta - light.outer_cut_off) / epsilon, 0.0, 1.0);
-        return light.color * intensity;
+        return light.l_color * intensity;
     } else {
-        return light.color;
+        return light.l_color;
     }
 }
 
 float attenuation(Light light, vec3 frag_position) {
-    if(light.is_position) {
-        float distance = length(light.position - frag_position);
+    if(light.l_type != Parallel) {
+        float distance = length(light.l_position - frag_position);
         return 1.0f / (1.0 + light.linear * distance + light.quadratic * distance * distance);
     } else {
         return 1.0;
+    }
+}
+
+vec4 hdr(vec4 color) {
+    if(hdr_enable) {
+        vec3 hdr_color = color.rgb;
+        vec3 mapped = hdr_color / (hdr_color + vec3(1.0));
+        return vec4(pow(mapped, vec3(1.0/gamma)),color.a);
+    } else {
+        return color;
     }
 }

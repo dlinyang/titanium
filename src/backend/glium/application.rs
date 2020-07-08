@@ -26,7 +26,7 @@ impl Application<GLRenderer,GLEventSystem> for GLApplication {
             .with_inner_size(LogicalSize::new(config.size.width as f64, config.size.height as f64))
             .with_decorations(config.decoration)
             .with_resizable(config.resizable);
-        let context_builder = ContextBuilder::new().with_depth_buffer(24).with_vsync(config.v_sync);
+        let context_builder = ContextBuilder::new().with_depth_buffer(24).with_vsync(config.v_sync).with_multisampling(4);
         let display = Display::new(window_builder, context_builder, &event_loop).unwrap();
 
         GLApplication {

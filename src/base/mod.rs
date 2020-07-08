@@ -5,6 +5,7 @@ pub mod transform;
 pub mod color;
 pub mod camera;
 pub mod utils;
+pub mod either;
 
 pub mod mesh;
 pub mod light;

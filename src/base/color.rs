@@ -1,5 +1,5 @@
 #[derive(Clone,Copy)]
-pub struct Color {
+pub struct RGBA {
     pub r: u8,
     pub g: u8,
     pub b: u8,
@@ -8,8 +8,8 @@ pub struct Color {
 
 use rmu::raw::{Vec4f,Vec3f};
 
-impl Color {
-    pub fn to_rgb(&self) -> Vec3f {
+impl RGBA {
+    pub fn rgb(&self) -> Vec3f {
         [self.r as f32, self.g as f32, self.b as f32]
     }
 }

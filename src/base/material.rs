@@ -1,12 +1,13 @@
 use rmu::raw::*;
 
-#[derive(Debug,Clone,Copy,PartialEq)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum PropertyValue {
     Bool(bool),
     Float(f32),
     Vec2(Vec2f),
     Vec3(Vec3f),
     Vec4(Vec4f),
+    Texture(String),
 }
 
 #[derive(Clone)]
@@ -20,14 +21,8 @@ impl Material {
         self.name.clone()
     }
 
-    pub fn property<'a>(&self) -> Vec<(&str,PropertyValue)> {
-        let mut result = Vec::new();
-
-        for (name,value) in &self.property {
-            result.push((name.as_str(), value.clone()));
-        }
-
-        result
+    pub fn property(&self) -> Vec<(String,PropertyValue)> {
+        self.property.clone()
     }
 }
 

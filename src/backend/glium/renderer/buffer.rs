@@ -7,36 +7,71 @@ use rmu::raw::{Vec3f,Vec4f,Mat4f,ID4F};
 use glium::vertex::VertexBuffer;
 use glium::index::IndexBuffer;
 use glium::texture::texture2d::Texture2d;
+use glium::texture::depth_texture2d::DepthTexture2d;
 use std::collections::HashMap;
 use crate::base::{Vertex, Position, material::Material};
 use crate::renderer::Light;
+use glium::Display;
+use std::rc::Rc;
 
 pub struct DataBuffer {
-    pub scene_data: SceneBuffer,
-    pub canvas_data: CanvasBuffer,
-    pub lights: HashMap<String,Light>,
-    pub view: Mat4f,
-    pub view_position: Vec3f,
-    pub project: Mat4f,
-    pub bg_color: Vec4f,
+    pub scene_data    : Rc<SceneBuffer>,
+    pub canvas_data   : Rc<CanvasBuffer>,
+    pub light_buffer  : LightBuffer,
+    pub texture_buffer: HashMap<String,Texture2d>,
+    pub depth_texture : Option<DepthTexture2d>,
+    pub view          : Mat4f,
+    pub view_position : Vec3f,
+    pub project       : Mat4f,
+    pub bg_color      : Vec4f,
 }
 
 impl DataBuffer {
-    pub fn lights(&self) -> Vec<Light> {
-        self.lights.values().map(|v| v.clone()).collect()
+    pub fn lights(&mut self,display: &Display) -> Buffer<[Light]> {
+        if let None = self.light_buffer.buffer {
+            let lights: Vec<Light> = self.light_buffer.lights.values().map(|x| {*x}).collect();
+            Buffer::new(display, lights.as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap()
+        } else {
+            self.light_buffer.buffer.take().unwrap()
+        }
+    }
+
+    pub fn light_number(&self) -> usize{
+        self.light_buffer.lights.len()
     }
 }
 
 impl Default for DataBuffer {
     fn default() -> Self {
         Self {
-            scene_data: Default::default(),
-            canvas_data: Default::default(),
-            lights: HashMap::new(),
+            scene_data: Rc::new(Default::default()),
+            canvas_data: Rc::new(Default::default()),
+            light_buffer: LightBuffer::new(),
+            texture_buffer: HashMap::new(),
+            depth_texture: None,
             view: ID4F,
             view_position: Default::default(),
             project: ID4F,
             bg_color: [1.0,1.0,1.0,1.0],
+        }
+    }
+}
+
+use glium::buffer::*;
+use glium::implement_uniform_block;
+
+implement_uniform_block!(Light,color_flux,position,direction_type,cut_off,outer_cut_off,linear,quadratic);
+
+pub struct LightBuffer {
+    pub lights: HashMap<String,Light>,
+    pub buffer: Option<Buffer<[Light]>>,
+}
+
+impl LightBuffer {
+    pub fn new() -> Self {
+        Self {
+            lights: HashMap::new(),
+            buffer: None,
         }
     }
 }
@@ -119,7 +154,7 @@ impl Default for CanvasBuffer {
 
 pub struct RenderLayer {
     pub id: u64,
-    pub gragphics: Option<GraphicsData>,
+    pub graphics: Option<GraphicsData>,
     pub text: Option<TextData>,
 }
 
@@ -127,7 +162,7 @@ impl RenderLayer {
     pub fn new(id: u64) -> Self {
         Self {
             id,
-            gragphics: None,
+            graphics: None,
             text: None,
         }
     }
@@ -137,7 +172,7 @@ impl RenderLayer {
     }
 
     pub fn set_graphics(&mut self, graphics_data: GraphicsData) {
-        self.gragphics = Some(graphics_data);
+        self.graphics = Some(graphics_data);
     }
 }
 

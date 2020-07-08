@@ -82,5 +82,5 @@ void main() {
         vec3 ambient = vec3(0.03) * material.albedo * material.ao;
         f_color = f_color + ambient + lo;
     }
-    color_out = vec4(f_color,1.0);
+    color_out = hdr(vec4(f_color,1.0));
 }

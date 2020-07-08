@@ -31,5 +31,5 @@ void main() {
         f_color = f_color + (ambient + diffuse + diffuse) * attenuation;
     }
 
-    color_out = vec4(f_color,1.0);
+    color_out = hdr(vec4(f_color,1.0));
 }
