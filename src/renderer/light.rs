@@ -53,4 +53,20 @@ impl Light {
             quadratic: 0.032,
         }
     }
+
+    pub fn position(&self) -> Vec3f {
+        [self.position[0],self.position[1], self.position[2]]
+    }
+
+    pub fn direction(&self) -> Vec3f {
+        [self.direction_type[0],self.direction_type[1],self.direction_type[2]]
+    }
+
+    pub fn is_parallel(&self) -> bool {
+        if self.direction_type[3] == 2.0 {
+            true
+        } else {
+            false
+        }
+    }
 }

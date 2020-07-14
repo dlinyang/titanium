@@ -17,6 +17,7 @@ impl RenderPassRenderer<SceneUniformData<'_>,CanvasUniformData,Program> for GLRe
                 write: true,
                 ..Default::default()
             },
+            blend: glium::Blend::alpha_blending(),
             multisampling: self.antialising_enable,
             ..Default::default()
         };

@@ -106,6 +106,7 @@ impl Default for Anchor {
     }
 }
 
+#[warn(unused_assignments)]
 pub fn area(anchor: Anchor, width: WindowUnit<f32>, height: WindowUnit<f32>, window_size: Size) -> Area {
     let mut x: f32 = 0.0;
     let mut y: f32 = 0.0;

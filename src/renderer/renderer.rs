@@ -3,7 +3,7 @@ use super::canvas::Canvas;
 use super::scene::RenderScene;
 use super::light::Light;
 use super::pipeline::*;
-use rmu::raw::Vec4f;
+use rmu::raw::{Vec4f,Vec2f};
 
 //the definition of Renderer
 pub trait Renderer {
@@ -14,12 +14,25 @@ pub trait Renderer {
     fn update_light(&mut self, name: &String, light: &Light);
     fn clear(&mut self);
     fn render(&mut self);
+    fn shadow_map(&mut self);
     fn render_scene(&mut self);
     fn render_canvas(&mut self);
     fn swap_buffer(&mut self);
     fn set_antialiasing(&mut self,enable: bool);
     fn set_hdr(&mut self, enable: bool);
     fn set_gamma(&mut self, gamma: f32);
+}
+
+use crate::base::Position;
+
+pub trait Renderer2D {
+    fn draw_points(&mut self, vertex: Vec<Position>, color: Vec4f, size: f32);
+    fn draw_line(&mut self, vertex: Vec<Position>, color: Vec4f, size: f32);
+    fn draw_lines(&mut self, vertex: Vec<Position>, color: Vec4f, size: f32);
+    fn draw_ploygon(&mut self, vertex: Vec<Position>, color: Vec4f, size: f32);
+    fn draw_ploygon_fill(&mut self, vertex: Vec<Position>, color: Vec4f);
+    fn set_pixel(&mut self, position: Vec2f, color: Vec4f);
+    fn draw_image<T>(&mut self, data: [T], w: u32, h: f32);
 }
 
 pub trait RenderPassRenderer<S,C,P> {

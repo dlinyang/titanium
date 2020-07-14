@@ -35,7 +35,7 @@ impl GLRenderer {
         Self {
             frame             : None,
             font_set          : FontSet::new(),
-            data_buffer       : DataBuffer::default(),
+            data_buffer       : DataBuffer::new(&display),
             shader_buffer     : Rc::new(shader_buffer),
             frame_data        : FrameData::new(&display),
             antialising_enable: true,
@@ -171,19 +171,21 @@ impl Renderer for GLRenderer {
     }
 
     fn update_camera(&mut self, camera: &Camera) {
-        self.data_buffer.view = camera.view();
-        self.data_buffer.view_position = camera.look_from.into();
-        self.data_buffer.project = camera.perspective();
+        self.data_buffer.camera = camera.clone();
     }
 
     fn update_light(&mut self, name: &String, light: &Light) {
+        let light_buffer = Rc::get_mut(&mut self.data_buffer.light_buffer).unwrap();
+        light_buffer.lights.insert(name.clone(), light.clone());
 
-        self.data_buffer.light_buffer.lights.insert(name.clone(), light.clone());
+        use glium::texture::*;
 
-        let lights: Vec<Light> = self.data_buffer.light_buffer.lights.values().map(|x| {*x}).collect();
-        self.data_buffer.light_buffer.buffer = Some(
-            Buffer::new(&self.display, lights.as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap()
-        );
+        let shadow_map_size = light_buffer.shadow_map_size;
+        let shadow_map = DepthTexture2d::empty(&self.display, shadow_map_size, shadow_map_size).unwrap();
+        light_buffer.shadow_maps.insert(name.clone(), shadow_map);
+
+        let lights: Vec<Light> =light_buffer.lights.values().map(|x| {*x}).collect();
+        light_buffer.buffer = Buffer::new(&self.display, lights.as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap();
     }
 
     fn clear(&mut self) {
@@ -198,20 +200,112 @@ impl Renderer for GLRenderer {
         self.render_canvas();
     }
 
+    fn shadow_map(&mut self) {
+
+        let mut camera = self.data_buffer.camera.clone();
+
+        let mut shadow_map_views = Vec::new();
+
+        for (name,light) in &self.data_buffer.light_buffer.lights {
+            camera.set_look_from(light.position());
+
+            use rmu::vector::Vector3;
+            let project = if light.is_parallel(){
+                camera.look_at = camera.look_from + Vector3::from(light.direction());
+                camera.ortho()
+            } else {
+                camera.perspective()
+            };
+
+            let view = camera.view();
+
+            let light_camera_matrix = uniforms::UniformBuffer::new(
+                &self.display, 
+                CameraMatrix {
+                    project,
+                    view: view,
+                }
+            ).unwrap();
+
+            let shadow_map = self.data_buffer.light_buffer.shadow_maps.get(name).unwrap();
+
+            use rmu::matrix::Matrix4x4;
+            shadow_map_views.push((Matrix4x4::from(project) * Matrix4x4::from(view)).into());
+
+            use glium::framebuffer::SimpleFrameBuffer;
+            let mut frame = SimpleFrameBuffer::depth_only(&self.display, shadow_map).unwrap();
+
+            frame.clear_color(1.0, 1.0, 1.0, 1.0);
+            frame.clear_depth(1.0);
+
+            use glium::draw_parameters::*;
+
+            let paratmeter = DrawParameters {
+                depth: Depth {
+                    test: DepthTest::IfLessOrEqual,
+                    write: true,
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+
+            use glium::uniform;
+
+            for data in self.data_buffer.scene_data.data.values() {
+                frame.draw(
+                    &data.vertex_buffer, 
+                    &data.indices, 
+                    &self.frame_data.shadow_map, 
+                    &uniform!{
+                        Camera: &light_camera_matrix,
+                        transform: data.transform,
+                    }, 
+                    &paratmeter,
+                ).unwrap();
+            }
+        }
+
+        let light_buffer = Rc::get_mut(&mut self.data_buffer.light_buffer).unwrap();
+        light_buffer.shadow_map_views = shadow_map_views;
+    }
+
     fn render_scene(&mut self) {
         let matrix = uniforms::UniformBuffer::new(
             &self.display, 
             CameraMatrix {
-                project: self.data_buffer.project,
-                view: self.data_buffer.view,
+                project: self.data_buffer.camera.project(),
+                view: self.data_buffer.camera.view(),
             }).unwrap();
         
         /* get lights buffer*/
-        let lights = self.data_buffer.lights(&self.display);
-        let lights_count = self.data_buffer.light_number() as i32;
+        let light_buffer = self.data_buffer.light_buffer.clone();
+        let lights_uniform = &light_buffer.unifrom_buffer();
+        let lights_count = light_buffer.light_number() as i32;
+
+        use glium::texture::DepthTexture2d;
+        use glium::uniforms::*;
+
+        let shadow_maps_ref: Vec<Sampler<'_,DepthTexture2d>> 
+            = light_buffer.shadow_maps
+                .values()
+                .map( 
+                    |x| Sampler::new(x)
+                            .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
+					        .minify_filter(glium::uniforms::MinifySamplerFilter::Nearest)
+                            .depth_texture_comparison(Some(DepthTextureComparison::LessOrEqual))
+                )
+                .collect();
+
+        let shadow_map_views = light_buffer.shadow_map_views.clone();
 
         let mut uniform_data = SceneUniformData::new(
-            &matrix, &lights, lights_count,self.data_buffer.view_position, self.hdr_enable, self.gamma
+            &matrix, 
+            &lights_uniform, 
+            lights_count, 
+            shadow_maps_ref, 
+            shadow_map_views, 
+            self.data_buffer.camera.look_from(), 
+            self.hdr_enable, self.gamma
         );
 
         {
@@ -225,8 +319,6 @@ impl Renderer for GLRenderer {
             }
         }
 
-        /* put lights buffer back */
-        self.data_buffer.light_buffer.buffer = Some(lights);
     }
 
     fn render_canvas(&mut self) {

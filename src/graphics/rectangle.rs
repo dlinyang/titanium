@@ -21,7 +21,7 @@ impl Rectangle {
             w: 0.1,
             h: 0.05,
             color: [0.1, 0.1, 0.5, 1.0],
-            graphics_type: GraphicsType::Polygon,
+            graphics_type: GraphicsType::PolygonFill,
         }
     }
 
@@ -34,24 +34,27 @@ impl Rectangle {
             graphics_type,
         }
     }
-}
 
-impl Into<Graphics> for Rectangle {
-    fn into(self) -> Graphics {
-        Graphics {
-            positions: rectangle(self.anchor,self.w,self.h),
-            material: color_canvas(self.color),
-            graphics_type: self.graphics_type,
-        }
+    #[inline]
+    fn position(&self) -> Vec<Position> {
+        let [x,y] = self.anchor;
+        let w = self.w;
+        let h = self.h;
+
+        let p0 = Position::from([x,y]);
+        let p1 = Position::from([x + w, y]);
+        let p2 = Position::from([x + w, y + h]);
+        let p3 = Position::from([x,y + h]);
+        vec![p0, p1, p2, p3]
     }
 }
 
-#[inline]
-fn rectangle(position: [f32;2], w: f32, h: f32) -> Vec<Position> {
-    let [x,y] = position;
-    let p0 = Position::from(position);
-    let p1 = Position::from([x + w, y]);
-    let p2 = Position::from([x + w, y + h]);
-    let p3 = Position::from([x,y + h]);
-    vec![p0, p1, p2, p3]
+impl From<Rectangle> for Graphics {
+    fn from(rectangle: Rectangle) -> Self {
+        Self {
+            positions: rectangle.position(),
+            material: color_canvas(rectangle.color),
+            graphics_type: rectangle.graphics_type,
+        }
+    }
 }

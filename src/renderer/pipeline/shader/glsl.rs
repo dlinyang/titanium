@@ -58,3 +58,11 @@ pub fn scene() -> String {
 pub fn canvas() -> String {
     String::from(include_str!("glsl/canvas.glsl"))
 }
+
+pub fn shadow_map_vert() -> String {
+    String::from(include_str!("glsl/shadow_map_vert.glsl"))
+}
+
+pub fn shadow_map_frag() -> String {
+    String::from(include_str!("glsl/shadow_map_frag.glsl"))
+}

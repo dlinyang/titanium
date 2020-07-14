@@ -21,6 +21,8 @@ pub struct SceneUniformData<'a> {
     pub matrix: &'a UniformBuffer<CameraMatrix>,
     pub lights: &'a Buffer<[Light]>,
     pub lights_count: i32,
+    pub shadow_maps: Vec<Sampler<'a,DepthTexture2d>>,
+    pub shadow_map_views: Vec<Mat4f>,
     pub view_position: Vec3f,
     pub hdr_enable: bool,
     pub gamma: f32,
@@ -32,15 +34,20 @@ impl<'a> SceneUniformData<'a> {
     pub fn new(
         matrix       : &'a UniformBuffer<CameraMatrix>, 
         lights       : &'a Buffer<[Light]>, 
-        lights_count : i32, 
+        lights_count : i32,
+        shadow_maps: Vec<Sampler<'a,DepthTexture2d>>, 
+        shadow_map_views: Vec<Mat4f>,
         view_position: Vec3f, 
         hdr_enable   : bool, 
         gamma        : f32
     ) -> Self {
+
         Self {
             matrix,
             lights,
             lights_count,
+            shadow_maps,
+            shadow_map_views,
             view_position,
             hdr_enable,
             gamma,
@@ -126,6 +133,23 @@ impl<'n> Uniforms for SceneUniform<'n> {
             output("gamma", self.data.gamma.as_uniform_value());
             output("Lights",self.data.lights.as_uniform_value());
             output("lights_count",self.data.lights_count.as_uniform_value());
+
+            let behavior = SamplerBehavior {
+                depth_texture_comparison: Some(DepthTextureComparison::LessOrEqual),
+                magnify_filter: MagnifySamplerFilter::Nearest,
+                minify_filter: MinifySamplerFilter::Nearest,
+                ..Default::default()
+            };
+
+            let mut i = 0;
+
+            /* issue: depth texture as uniform have some problem will make shadow mapping don't work*/
+            while i < self.data.shadow_maps.len() {
+                output(format!("shadow[{}].tex,",i).as_str(),self.data.shadow_maps[i].as_uniform_value());
+                output(format!("shadow[{}].mvp,",i).as_str(),self.data.shadow_map_views[i].as_uniform_value());
+                i += 1;
+            }
+
         }
 
         for (name, value) in self.material_property_mapped.iter() {

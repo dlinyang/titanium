@@ -77,10 +77,13 @@ void main() {
         vec3 specular = nominator / denominator;
     
         float NL = max(dot(f_normal, light_direction), 0.0);
-        vec3 lo = (kd * material.albedo / PI + specular) * radiance * NL;
+
+        vec3 lo = (kd * material.albedo / PI + specular) * radiance * NL ;
+
+        float visibility = visibility(shadow[i].mvp * vec4(frag_pos,1.0),shadow[i].tex,0.0);
 
         vec3 ambient = vec3(0.03) * material.albedo * material.ao;
-        f_color = f_color + ambient + lo;
+        f_color = f_color + ambient + lo *visibility;
     }
     color_out = hdr(vec4(f_color,1.0));
 }

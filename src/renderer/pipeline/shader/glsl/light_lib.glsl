@@ -21,6 +21,12 @@ layout (std140) uniform Lights{
     Light[LIGHTS_MAX_NUMBER] light;
 };
 
+struct Shadow {
+    sampler2D tex;
+    mat4 mvp;
+};
+
+uniform Shadow[LIGHTS_MAX_NUMBER] shadow;
 uniform int lights_count;
 uniform vec3 view_position;
 uniform bool hdr_enable;
@@ -43,6 +49,14 @@ vec3 light_color(Light light, vec3 direction) {
     } else {
         return light.l_color;
     }
+}
+
+float visibility(vec4 position, sampler2D shadow_map, float bias) {
+    vec3 frag_pos = position.xyz / position.w;
+    frag_pos = frag_pos * 0.5 + 0.5;
+    float closet_depth = texture(shadow_map, frag_pos.xy).r;
+    float current_depth = frag_pos.z;
+    return current_depth > closet_depth?0.0:1.0;
 }
 
 float attenuation(Light light, vec3 frag_position) {

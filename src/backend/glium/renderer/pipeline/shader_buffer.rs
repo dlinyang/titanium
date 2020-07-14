@@ -19,7 +19,7 @@ impl GLShaderBuffer {
     }
 
     pub fn load_bulidin(&mut self,display: &Display) {
-        let version = glsl_version(4, 50);
+        let version = glsl_version(4, 60);
 
         let canvas_vert = glsl(version.clone(), String::new(), canvas_vert());
         let canvas_code = glsl(version.clone(), String::new(), color_canvas());

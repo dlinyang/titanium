@@ -24,22 +24,17 @@ impl Points {
         }
     }
 
-    pub fn to_graphics(&self) -> Graphics {
+    pub fn positions(&self) -> Vec<Position> {
+        self.point_array.iter().map(|x| Position::from(*x)).collect()
+    }
+}
+
+impl From<Points> for Graphics {
+    fn from(points: Points) -> Graphics {
         Graphics {
-            positions: self.positions(),
-            material: color_canvas(self.color),
+            positions: points.positions(),
+            material: color_canvas(points.color),
             graphics_type: GraphicsType::Points,
         }
     }
-
-    pub fn positions(&self) -> Vec<Position> {
-
-        let mut result = Vec::new();
-
-        for x in &self.point_array {
-            result.push(Position::from(*x));
-        }
-        result
-    }
-
 }

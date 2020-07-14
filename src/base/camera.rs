@@ -12,6 +12,7 @@ pub struct Camera {
     pub near: f32,
     pub far: f32,
     pub aspect_radio: f32,
+    pub mode: CameraMode,
 }
 
 impl Camera {
@@ -24,6 +25,7 @@ impl Camera {
             near: 0.1,
             far: 1024.0,
             aspect_radio,
+            mode: CameraMode::Perspective,
         }
     }
 
@@ -37,9 +39,17 @@ impl Camera {
         [self.look_from[0], self.look_from[1], self.look_from[2]]
     }
 
+    pub fn set_look_from(&mut self, look_from: Vec3f) {
+        self.look_from = look_from.into();
+    }
+
     #[inline]
     pub fn look_at(&self) -> Vec3f {
         [self.look_at[0], self.look_at[1], self.look_at[2]]
+    }
+
+    pub fn set_look_at(&mut self, look_at: Vec3f) {
+        self.look_at = look_at.into();
     }
 
     pub fn translation(&mut self, x: f32, y: f32, z: f32) {
@@ -76,6 +86,33 @@ impl Camera {
     pub fn ortho(&self) -> Mat4f {
         ortho(self.fov, self.far, self.near, self.aspect_radio)
     }
+
+    pub fn project(&self) -> Mat4f {
+        match &self.mode {
+            CameraMode::Perspective => self.perspective(),
+            CameraMode::Orthogonal => self.ortho(),
+        }
+    }
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            look_from: Vector3::new(10.0, 0.0, 0.0),
+            look_at: Vector3::new(0.0, 0.0, 0.0),
+            vup: Vector3::new(0.0, 0.0, 1.0),
+            fov: std::f32::consts::PI / 3.0,
+            near: 0.1,
+            far: 1024.0,
+            aspect_radio: 1240.0 / 720.0,
+            mode: CameraMode::Perspective,
+        }
+    }
+}
+#[derive(Debug, Copy,Clone)]
+pub enum CameraMode {
+    Perspective,
+    Orthogonal,
 }
 
 use rmu::vector::Vector3;

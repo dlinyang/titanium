@@ -3,13 +3,13 @@
 /// 
 /// 
 /// 
-use rmu::raw::{Vec3f,Vec4f,Mat4f,ID4F};
+use rmu::raw::{Vec4f,Mat4f};
 use glium::vertex::VertexBuffer;
 use glium::index::IndexBuffer;
 use glium::texture::texture2d::Texture2d;
 use glium::texture::depth_texture2d::DepthTexture2d;
 use std::collections::HashMap;
-use crate::base::{Vertex, Position, material::Material};
+use crate::base::{Vertex, Position, material::Material, camera::Camera};
 use crate::renderer::Light;
 use glium::Display;
 use std::rc::Rc;
@@ -17,41 +17,22 @@ use std::rc::Rc;
 pub struct DataBuffer {
     pub scene_data    : Rc<SceneBuffer>,
     pub canvas_data   : Rc<CanvasBuffer>,
-    pub light_buffer  : LightBuffer,
+    pub light_buffer  : Rc<LightBuffer>,
     pub texture_buffer: HashMap<String,Texture2d>,
     pub depth_texture : Option<DepthTexture2d>,
-    pub view          : Mat4f,
-    pub view_position : Vec3f,
-    pub project       : Mat4f,
+    pub camera        : Camera,
     pub bg_color      : Vec4f,
 }
 
 impl DataBuffer {
-    pub fn lights(&mut self,display: &Display) -> Buffer<[Light]> {
-        if let None = self.light_buffer.buffer {
-            let lights: Vec<Light> = self.light_buffer.lights.values().map(|x| {*x}).collect();
-            Buffer::new(display, lights.as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap()
-        } else {
-            self.light_buffer.buffer.take().unwrap()
-        }
-    }
-
-    pub fn light_number(&self) -> usize{
-        self.light_buffer.lights.len()
-    }
-}
-
-impl Default for DataBuffer {
-    fn default() -> Self {
+    pub fn new(display: &Display) -> Self {
         Self {
             scene_data: Rc::new(Default::default()),
             canvas_data: Rc::new(Default::default()),
-            light_buffer: LightBuffer::new(),
+            light_buffer: Rc::new(LightBuffer::new(display)),
             texture_buffer: HashMap::new(),
             depth_texture: None,
-            view: ID4F,
-            view_position: Default::default(),
-            project: ID4F,
+            camera: Default::default(),
             bg_color: [1.0,1.0,1.0,1.0],
         }
     }
@@ -64,15 +45,29 @@ implement_uniform_block!(Light,color_flux,position,direction_type,cut_off,outer_
 
 pub struct LightBuffer {
     pub lights: HashMap<String,Light>,
-    pub buffer: Option<Buffer<[Light]>>,
+    pub shadow_maps: HashMap<String,DepthTexture2d>,
+    pub shadow_map_views: Vec<Mat4f>,
+    pub shadow_map_size: u32,
+    pub buffer: Buffer<[Light]>,
 }
 
 impl LightBuffer {
-    pub fn new() -> Self {
+    pub fn new(display: &Display) -> Self {
         Self {
             lights: HashMap::new(),
-            buffer: None,
+            shadow_maps: HashMap::new(),
+            shadow_map_views: Vec::new(),
+            shadow_map_size: 512,
+            buffer: Buffer::new(display, vec![Light::new()].as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap(),
         }
+    }
+
+    pub fn unifrom_buffer(&self) -> &Buffer<[Light]> {
+        &self.buffer
+    }
+
+    pub fn light_number(&self) -> usize{
+        self.lights.len()
     }
 }
 

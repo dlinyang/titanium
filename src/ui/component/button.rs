@@ -4,12 +4,14 @@ use crate::base::utils::*;
 use crate::renderer::canvas::*;
 use crate::event::*;
 use crate::event::utils::*;
+use crate::graphics::round_rectangle::*;
 
 pub struct Button {
     pub id: u64,
     pub anchor: Anchor,
     pub width: WindowUnit<f32>,
     pub height: WindowUnit<f32>,
+    pub round_angle: RoundAngle,
     pub area: Area,
     pub label: String,
     pub color: Vec4f,
@@ -52,6 +54,11 @@ impl Button {
         self
     }
 
+    pub fn with_round_angle(mut self, round_angle: RoundAngle) -> Self {
+        self.round_angle = round_angle;
+        self
+    }
+
 
     pub fn is_click(&mut self) -> bool {
         self.click.is_click()
@@ -65,6 +72,7 @@ impl WidgetBuilder for Button {
             anchor: Anchor::default(),
             width: Default::default(),
             height: Default::default(),
+            round_angle: Default::default(),
             area: Default::default(),
             label: Default::default(),
             color: [1.0, 1.0, 1.0, 1.0],
@@ -83,8 +91,6 @@ impl WidgetBuilder for Button {
         self
     }
 }
-
-use crate::graphics::Rectangle;
 
 impl Widget for Button {
     fn update(&mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> bool {
@@ -137,7 +143,7 @@ impl Widget for Button {
         let text_anchor = [self.area.top_left_point[0] + ( width -  text_width )  * 0.5, self.area.top_left_point[1]];
 
         Layer::with_id(self.id)
-              .with_graphics(Rectangle::create(self.area.top_left_point, width, height, color, graphics::GraphicsType::PolygonFill).into())
+              .with_graphics(RoundRectangle::create(self.area.top_left_point, width, height, self.round_angle, color, graphics::GraphicsType::PolygonFill).into())
               .with_text(
                   text::Text::create(
                       self.label.clone(), 

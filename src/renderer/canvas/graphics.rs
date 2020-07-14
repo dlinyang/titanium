@@ -1,4 +1,3 @@
-use rmu::raw::Vec4f;
 use crate::base::Position;
 use crate::base::material::Material;
 

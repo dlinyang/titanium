@@ -28,7 +28,8 @@ void main() {
         vec3 ambient = color * material.ambient;
         vec3 specular = color * pow(max(dot(f_normal, halfway_direction), 0.0), material.shininess);
         vec3 diffuse = color * max(dot(f_normal, light_direction),0.0);
-        f_color = f_color + (ambient + diffuse + diffuse) * attenuation;
+        float visibility = visibility(shadow[i].mvp * vec4(frag_pos,1.0),shadow[i].tex,0.0);
+        f_color = f_color + (ambient + visibility * (diffuse + specular)) * attenuation;
     }
 
     color_out = hdr(vec4(f_color,1.0));
