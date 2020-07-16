@@ -4,11 +4,13 @@
 pub mod pipeline;
 pub mod renderer;
 pub mod light;
+pub mod image;
+pub mod text;
 pub mod scene;
-pub mod canvas;
 
 pub use renderer::*;
 pub use pipeline::*;
 pub use light::*;
+pub use image::*;
+pub use text::*;
 pub use scene::*;
-pub use canvas::*;

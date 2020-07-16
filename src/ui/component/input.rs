@@ -1,10 +1,8 @@
 use super::super::*;
 use rmu::raw::Vec4f;
 use crate::base::utils::*;
-use crate::renderer::canvas::*;
 use crate::event::*;
-use crate::event::utils::*;
-use crate::graphics::Rectangle;
+use crate::graphics::{Rectangle,Graphics2d};
 
 pub struct Input {
     pub id: u64,
@@ -53,16 +51,15 @@ impl WidgetBuilder for Input {
         }
     }
 
-    fn build(mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> Self {
+    fn build(mut self, ui_state: &mut UIState) -> Self {
         self.area = area(self.anchor, self.width, self.height, ui_state.window_size);
         self.font_size = self.area.height() * ui_state.window_size.height;
-        canvas.update(self.layer());
         self
     }
 }
 
-impl Widget for Input {
-    fn update(&mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> bool {
+impl WidgetAction for Input {
+    fn update(&mut self, ui_state: &mut UIState) -> bool {
 
         match ui_state.event {
             Event::MouseEvent { button, state} => match button {
@@ -84,13 +81,11 @@ impl Widget for Input {
                     false
                 } else {
                     self.input.push(c);
-                    canvas.update(self.layer());
                     true
                 }
             } else if let Event::KeyEvent{ key, state} = ui_state.event {
                 if state == ButtonState::Press && (key == Key::Delete || key == Key::Back) {
                     self.input.pop();
-                    canvas.update(self.layer());
                     true
                 } else{
                     false
@@ -103,20 +98,26 @@ impl Widget for Input {
         }
     }
 
-    fn layer(&self) -> Layer {
+    fn id(&self) -> u64 {
+        self.id
+    }
+}
+
+use crate::renderer::{Renderer2D, Text};
+impl<R> WidgetRender<R> for Input where R: Renderer2D {
+    fn render(&self, renderer: &mut R) {
         let anchor = self.area.top_left_point;
         let width = self.area.width();
         let height = self.area.height();
 
-    let graphics = Rectangle::create(anchor, width, height, self.color, graphics::GraphicsType::PolygonFill);
-    let text = text::Text::create(self.input.clone(), self.font.clone(), anchor, Size::uniform(self.font_size), width, self.font_color);
+        let graphics = Rectangle::create(anchor, width, height);
+        let text = Text::create(self.input.clone(), self.font.clone(), anchor, Size::uniform(self.font_size), width);
 
-        Layer::with_id(self.id)
-              .with_graphics(graphics.into())
-              .with_text(text)
+        renderer.draw_polygon_fill(graphics.positions(), self.color);
+        renderer.draw_text(&text, self.font_color);
     }
+}
 
-    fn id(&self) -> u64 {
-        self.id
-    }
+impl<R> Widget<R> for Input where R: Renderer2D {
+
 }

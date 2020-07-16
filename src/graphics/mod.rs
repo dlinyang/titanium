@@ -1,9 +1,13 @@
 /// Graphics Generator
-pub mod points;
 pub mod rectangle;
 pub mod round_rectangle;
 pub mod circle;
 
-pub use points::*;
 pub use rectangle::*;
 pub use round_rectangle::*;
+
+use rmu::raw::Vec2f;
+
+pub trait Graphics2d {
+    fn positions(&self) -> Vec<Vec2f>;
+}

@@ -7,9 +7,8 @@ use glium::{Surface, Display, IndexBuffer, VertexBuffer,index, uniforms, buffer:
 use std::collections::HashMap;
 
 use super::buffer::*;
-use super::font::*;
 use super::pipeline::*;
-use super::frame_data::FrameData;
+use super::screen_data::*;
 use glium::Frame;
 
 use std::rc::Rc;
@@ -20,7 +19,7 @@ pub struct GLRenderer {
     pub font_set          : FontSet,
     pub data_buffer       : DataBuffer,
     pub shader_buffer     : Rc<GLShaderBuffer>,
-    pub frame_data        : FrameData,
+    pub screen_data       : ScreenData,
     pub antialising_enable: bool,
     pub config            : Config,
     pub hdr_enable        : bool,
@@ -37,7 +36,7 @@ impl GLRenderer {
             font_set          : FontSet::new(),
             data_buffer       : DataBuffer::new(&display),
             shader_buffer     : Rc::new(shader_buffer),
-            frame_data        : FrameData::new(&display),
+            screen_data       : ScreenData::new(&display),
             antialising_enable: true,
             display,
             config,
@@ -47,25 +46,9 @@ impl GLRenderer {
     }
 }
 
-use crate::renderer::canvas::graphics::GraphicsType;
-use glium::index::PrimitiveType;
-
-impl From<GraphicsType> for PrimitiveType {
-    fn from(graphics_type: GraphicsType) -> PrimitiveType {
-        match graphics_type {
-            GraphicsType::Points      => PrimitiveType::Points,
-            GraphicsType::Line        => PrimitiveType::LineStrip,
-            GraphicsType::LineList    => PrimitiveType::LinesList,
-            GraphicsType::Polygon     => PrimitiveType::LineLoop,
-            GraphicsType::PolygonFill => PrimitiveType::TriangleFan,
-        }
-    }
-}
-
 use rmu::raw::Vec4f;
 use crate::base::Index;
 use scene::DataUpdate;
-use glium::index::NoIndices;
 
 impl Renderer for GLRenderer {
 
@@ -124,50 +107,27 @@ impl Renderer for GLRenderer {
         }
     }
 
-    fn update_canvas(&mut self, canvas: &mut Canvas)  {
+    fn update_texture(&mut self, data: ImageData, name: &String) {
+        use std::borrow::Cow;
 
-        let canvas_data = Rc::get_mut(&mut self.data_buffer.canvas_data).unwrap();
+        let texture = Texture2d::with_format(
+            &self.display,
+            RawImage2d {
+                data: Cow::Owned(data.data),
+                width: data.dimensions.0,
+                height: data.dimensions.1,
+                format: data.image_type.into(),
+            },
+            data.image_type.into(),
+            MipmapsOption::NoMipmap,
+        ).unwrap();
 
-        /* check canvas change*/
-        if canvas.id != canvas_data.id {
-            canvas_data.clear();
-            canvas_data.id = canvas.id;
-        }
+        self.data_buffer.texture_buffer.insert(name.clone(), texture);
 
-        for layer in &canvas.layers {
-            let mut render_layer = RenderLayer::new(layer.id);
+    }
 
-            if let Some(text) = &layer.text {
-                use rusttype::Font;
-                if let Some(font_byte) = self.font_set.font_byte(&text.font) {
-                    let font = Font::try_from_bytes(font_byte).unwrap();
-                    render_layer.set_text(load_text(text, &font, &self.display));
-                } 
-            }
-                        
-            if let Some(graphic) = &layer.graphics {
-                use crate::base::Position;
-
-                /* convert vertices to NDC*/
-                let vertices: Vec<Position> = graphic
-                    .positions
-                    .iter()
-                    .map(|v| { Position::new([2.0 * v.position[0] - 1.0, -2.0 * v.position[1] + 1.0], v.tex_coordinate)})
-                    .collect();
-                
-                let vertex_buffer = glium::VertexBuffer::new(&self.display, &vertices).unwrap();
-
-                render_layer.set_graphics(GraphicsData {
-                    vertex_buffer,
-                    indices: NoIndices(graphic.graphics_type.into()),
-                    material: graphic.material.clone(),
-                })
-            }
-
-            canvas_data.update(render_layer);
-            
-        }
-
+    fn remove_texture(&mut self, name: &String) {
+        self.data_buffer.texture_buffer.remove(name);
     }
 
     fn update_camera(&mut self, camera: &Camera) {
@@ -188,16 +148,20 @@ impl Renderer for GLRenderer {
         light_buffer.buffer = Buffer::new(&self.display, lights.as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap();
     }
 
+    fn remove_light(&mut self, name: &String) {
+        let light_buffer = Rc::get_mut(&mut self.data_buffer.light_buffer).unwrap();
+        if let Some(_) = light_buffer.lights.remove(name) {
+            light_buffer.shadow_maps.remove(name);
+            let lights: Vec<Light> =light_buffer.lights.values().map(|x| {*x}).collect();
+            light_buffer.buffer = Buffer::new(&self.display, lights.as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap();
+        }
+    }
+
     fn clear(&mut self) {
         let [r,g,b,a] = self.data_buffer.bg_color;
         let mut frame = self.display.draw();
         frame.clear_color_and_depth((r, g, b, a), 1.0);
         self.frame = Some(frame);
-    }
-
-    fn render(&mut self) {
-        self.render_scene();
-        self.render_canvas();
     }
 
     fn shadow_map(&mut self) {
@@ -255,7 +219,7 @@ impl Renderer for GLRenderer {
                 frame.draw(
                     &data.vertex_buffer, 
                     &data.indices, 
-                    &self.frame_data.shadow_map, 
+                    &self.screen_data.shadow_map, 
                     &uniform!{
                         Camera: &light_camera_matrix,
                         transform: data.transform,
@@ -269,7 +233,7 @@ impl Renderer for GLRenderer {
         light_buffer.shadow_map_views = shadow_map_views;
     }
 
-    fn render_scene(&mut self) {
+    fn render(&mut self) {
         let matrix = uniforms::UniformBuffer::new(
             &self.display, 
             CameraMatrix {
@@ -314,35 +278,11 @@ impl Renderer for GLRenderer {
 
             for material_name in scene_data.same_material_data.keys() {
                 if let Some(render_pass) = shader_buffer.shader(&material_name) {
-                    self.scene_render_pass(&material_name, &mut uniform_data, render_pass);
+                    self.render_pass(&material_name, &mut uniform_data, render_pass);
                 }
             }
         }
 
-    }
-
-    fn render_canvas(&mut self) {
-        let mut layer_index: usize = 0;
-        let canvas_data = self.data_buffer.canvas_data.clone();
-        let shader_buffer = self.shader_buffer.clone();
-
-        for render_layer in &canvas_data.data {
-            if let Some(graphics) = &render_layer.graphics { 
-                if let Some(pass) = shader_buffer.shader(&graphics.material.name) {
-                    let mut uniform_data = CanvasUniformData::new(graphics.material.property());
-                    self.canvas_render_pass(LayerIndex::Text(layer_index),&mut uniform_data,pass);
-                }
-            }
-
-            if let Some(text) = &render_layer.text {
-                if let Some(pass) = shader_buffer.shader(&text.material.name) {
-                    let mut uniform_data = CanvasUniformData::new(text.material.property());
-                    self.canvas_render_pass(LayerIndex::Graphics(layer_index),&mut uniform_data,pass);
-                }
-            }
-
-            layer_index += 1;
-        }
     }
 
     fn swap_buffer(&mut self)  {
@@ -361,5 +301,28 @@ impl Renderer for GLRenderer {
 
     fn set_gamma(&mut self, gamma: f32) {
         self.gamma = gamma;
+    }
+}
+
+use crate::renderer::image::*;
+use glium::texture::*;
+
+impl From<ImageType> for ClientFormat {
+    fn from(ty: ImageType) -> Self {
+        match ty {
+            ImageType::U8 => ClientFormat::U8,
+            ImageType::U8U8U8 => ClientFormat::U8U8U8,
+            ImageType::U8U8U8U8 => ClientFormat::U8U8U8U8,
+        }
+    }
+}
+
+impl From<ImageType> for UncompressedFloatFormat {
+    fn from(ty: ImageType) -> Self {
+        match ty {
+            ImageType::U8 => UncompressedFloatFormat::U8,
+            ImageType::U8U8U8 => UncompressedFloatFormat::U8U8U8,
+            ImageType::U8U8U8U8 => UncompressedFloatFormat::U8U8U8U8,
+        }
     }
 }

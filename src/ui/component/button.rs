@@ -1,10 +1,10 @@
 use super::super::*;
 use rmu::raw::Vec4f;
 use crate::base::utils::*;
-use crate::renderer::canvas::*;
 use crate::event::*;
 use crate::event::utils::*;
 use crate::graphics::round_rectangle::*;
+use crate::graphics::Graphics2d;
 
 pub struct Button {
     pub id: u64,
@@ -54,6 +54,7 @@ impl Button {
         self
     }
 
+    /// Round angle radius unit : pixel
     pub fn with_round_angle(mut self, round_angle: RoundAngle) -> Self {
         self.round_angle = round_angle;
         self
@@ -84,16 +85,16 @@ impl WidgetBuilder for Button {
         }
     }
 
-    fn build(mut self, ui_state: &mut UIState, canvas: &mut Canvas)  -> Self {
+    fn build(mut self, ui_state: &mut UIState)  -> Self {
         self.area = area(self.anchor, self.width, self.height, ui_state.window_size);
+        self.round_angle.div(ui_state.window_size.height);
         self.font_size = self.area.height() * ui_state.window_size.height;
-        canvas.update(self.layer());
         self
     }
 }
 
-impl Widget for Button {
-    fn update(&mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> bool {
+impl WidgetAction for Button  {
+    fn update(&mut self, ui_state: &mut UIState) -> bool {
 
         if self.area.in_area(ui_state.cursor[0], ui_state.cursor[1]) {
             ui_state.hot_widget = Some(self.id);
@@ -113,13 +114,11 @@ impl Widget for Button {
                 false
             } else {
                 self.is_hover = true;
-                canvas.update(self.layer());
                 true
             }
         } else {
             if self.is_hover {
                 self.is_hover = false;
-                canvas.update(self.layer());
                 true
             } else {
                 false
@@ -127,8 +126,15 @@ impl Widget for Button {
         }
     }
 
-    fn layer(&self) -> Layer {
+    fn id(&self) -> u64 {
+        self.id
+    }
+}
 
+use crate::renderer::{Renderer2D, Text};
+
+impl<R> WidgetRender<R> for Button where R: Renderer2D{
+    fn render(&self, renderer: &mut R) { 
         let [r,g,b,a] = self.color;
         let color = if self.is_hover { 
                 [r / 2.0, g / 2.0, b / 2.0, a]
@@ -142,20 +148,15 @@ impl Widget for Button {
 
         let text_anchor = [self.area.top_left_point[0] + ( width -  text_width )  * 0.5, self.area.top_left_point[1]];
 
-        Layer::with_id(self.id)
-              .with_graphics(RoundRectangle::create(self.area.top_left_point, width, height, self.round_angle, color, graphics::GraphicsType::PolygonFill).into())
-              .with_text(
-                  text::Text::create(
-                      self.label.clone(), 
-                      self.font.clone(), text_anchor, 
-                      Size::uniform(self.font_size), 
-                      text_width, 
-                      self.font_color
-                    )
-                )
-    }
+        let graphics = RoundRectangle::create(self.area.top_left_point, width, height, self.round_angle);
 
-    fn id(&self) -> u64 {
-        self.id
+        let text = Text::create( self.label.clone(), self.font.clone(), text_anchor, Size::uniform(self.font_size), text_width);
+
+        renderer.draw_polygon_fill(graphics.positions(), color);
+        renderer.draw_text(&text, self.font_color);
     }
+}
+
+impl<R> Widget<R> for Button where R: Renderer2D {
+
 }

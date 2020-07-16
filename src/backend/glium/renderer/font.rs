@@ -1,9 +1,7 @@
 use glium::texture::Texture2d;
 use rusttype::gpu_cache::Cache;
 use rusttype::{point, vector, Font, PositionedGlyph, Rect, Scale};
-use crate::base::Position;
-
-use crate::renderer::canvas::text::Text;
+use crate::base::ImagePosition;
 
 use std::borrow::Cow;
 
@@ -44,9 +42,10 @@ fn layout_paragraph<'a>(font: &'a Font, scale: Scale, width: u32, text: &str) ->
     result
 }
 
-use super::buffer::TextData;
+use glium::{VertexBuffer, IndexBuffer};
+use crate::renderer::Text;
 
-pub fn load_text (text: &Text,font: &Font, display: &glium::Display) -> TextData {
+pub fn load_text (text: &Text, font: &Font, display: &glium::Display) ->  (VertexBuffer<ImagePosition>,IndexBuffer<u32>,Texture2d) {
     let scale = display.gl_window().window().scale_factor();
     let (width,_):(f32,_) = display.gl_window().window().inner_size().into();
     let (w, h) = ((512.0 * scale) as u32, (512.0 * scale) as u32);
@@ -99,7 +98,7 @@ pub fn load_text (text: &Text,font: &Font, display: &glium::Display) -> TextData
     };
 
     let origin = point(text.position[0] * 2.0, -text.position[1] * 2.0);
-    let vertices: Vec<Position> = glyphs
+    let vertices: Vec<ImagePosition> = glyphs
         .iter()
         .flat_map(|g| {
             if let Ok(Some((uv_rect, screen_rect))) = cache.rect_for(0, g) {
@@ -115,10 +114,10 @@ pub fn load_text (text: &Text,font: &Font, display: &glium::Display) -> TextData
                             1.0 - screen_rect.max.y as f32 / screen_height - 0.5
                             )) * 2.0,
                 };
-                vec![Position::new([gl_rect.min.x,gl_rect.min.y], [uv_rect.min.x,uv_rect.min.y]),
-                     Position::new([gl_rect.min.x,gl_rect.max.y], [uv_rect.min.x,uv_rect.max.y]),
-                     Position::new([gl_rect.max.x,gl_rect.max.y], [uv_rect.max.x,uv_rect.max.y]),
-                     Position::new([gl_rect.max.x,gl_rect.min.y], [uv_rect.max.x,uv_rect.min.y])]
+                vec![ImagePosition::new([gl_rect.min.x,gl_rect.min.y], [uv_rect.min.x,uv_rect.min.y]),
+                     ImagePosition::new([gl_rect.min.x,gl_rect.max.y], [uv_rect.min.x,uv_rect.max.y]),
+                     ImagePosition::new([gl_rect.max.x,gl_rect.max.y], [uv_rect.max.x,uv_rect.max.y]),
+                     ImagePosition::new([gl_rect.max.x,gl_rect.min.y], [uv_rect.max.x,uv_rect.min.y])]
             } 
             else {
                 Vec::new()
@@ -138,11 +137,5 @@ pub fn load_text (text: &Text,font: &Font, display: &glium::Display) -> TextData
         let vertex_buffer = glium::VertexBuffer::new(display, &vertices).unwrap();
         let indices = glium::IndexBuffer::new(display, glium::index::PrimitiveType::TrianglesList, &index_buffer).unwrap();
         
-        
-        TextData {
-            vertex_buffer,
-            texture: cache_tex,
-            indices,
-            material: text.material.clone(),
-        }
+        (vertex_buffer, indices, cache_tex)
 }

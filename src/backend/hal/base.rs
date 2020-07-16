@@ -912,7 +912,7 @@ impl<B: Backend> FramebufferState<B> {
         ret
     }
 
-    fn get_frame_data(
+    fn get_screen_data(
         &mut self,
         frame_id: Option<usize>,
         sem_index: Option<usize>,

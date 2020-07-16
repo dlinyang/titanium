@@ -35,28 +35,28 @@ pub fn pure_color() -> String {
     String::from(include_str!("glsl/pure_color.glsl"))
 }
 
-pub fn canvas_vert() -> String {
-    String::from(include_str!("glsl/canvas_vert.glsl"))
+pub fn position() -> String {
+    String::from(include_str!("glsl/position.glsl"))
 }
 
-pub fn font_canvas() -> String {
-    String::from(include_str!("glsl/font_canvas.glsl"))
+pub fn image_position() -> String {
+    String::from(include_str!("glsl/image_position.glsl"))
 }
 
-pub fn color_canvas() -> String {
-    String::from(include_str!("glsl/color_canvas.glsl"))
+pub fn font() -> String {
+    String::from(include_str!("glsl/font.glsl"))
 }
 
-pub fn image_canvas() -> String {
-    String::from(include_str!("glsl/image_canvas.glsl"))
+pub fn color() -> String {
+    String::from(include_str!("glsl/color.glsl"))
+}
+
+pub fn image() -> String {
+    String::from(include_str!("glsl/image.glsl"))
 }
 
 pub fn scene() -> String {
     String::from(include_str!("glsl/scene.glsl"))
-}
-
-pub fn canvas() -> String {
-    String::from(include_str!("glsl/canvas.glsl"))
 }
 
 pub fn shadow_map_vert() -> String {

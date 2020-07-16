@@ -33,30 +33,51 @@ impl From<Vector3> for Vertex {
     }
 }
 
-//use for 2d and ui
+// use for 2d
 #[derive(Copy,Clone)]
 pub struct Position {
     pub position: Vec2f,
-    pub tex_coordinate: Vec2f,
 }
 
 impl Position {
     #[inline]
-    pub fn new(position: Vec2f, tex_coordinate: Vec2f) -> Self {
+    pub fn new(position: Vec2f) -> Self {
         Position {
+            position,
+        }
+    }
+}
+
+impl From<Vector2> for Position {
+    fn from(position: Vector2) -> Self {
+        Self::new(position.into())
+    }
+}
+
+// use for 2d with texture
+#[derive(Copy,Clone)]
+pub struct ImagePosition {
+    pub position: Vec2f,
+    pub tex_coordinate: Vec2f,
+}
+
+impl ImagePosition {
+    #[inline]
+    pub fn new(position: Vec2f, tex_coordinate: Vec2f) -> Self {
+        Self {
             position,
             tex_coordinate,
         }
     }
 }
 
-impl From<Vec2f> for Position {
+impl From<Vec2f> for ImagePosition {
     fn from(position: Vec2f) -> Self {
         Self::new(position, [0.0, 0.0])
     }
 }
 
-impl From<Vector2> for Position {
+impl From<Vector2> for ImagePosition {
     fn from(position: Vector2) -> Self {
         Self::new(position.into(), [0.0, 0.0])
     }

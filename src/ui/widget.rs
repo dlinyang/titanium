@@ -1,48 +1,34 @@
-/// 
 use rmu::raw::Vec2f;
 use crate::base::utils::*;
-use crate::renderer::canvas::{Canvas,Layer};
 use super::ui::UIState;
 
-pub trait Widget {
-    fn layer(&self) -> Layer;
+pub trait WidgetAction {
     fn id(&self) -> u64;
-    fn update(&mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> bool;
+    fn update(&mut self, ui_state: &mut UIState) -> bool;
 }
 
-/// let widget = Widget.new(..). .. .build(..)
-pub trait WidgetBuilder: Widget {
+use crate::renderer::Renderer2D;
+
+pub trait WidgetRender<R> where R: Renderer2D {
+    fn render(&self, renderer: &mut R);
+}
+
+/// # example
+/// ```ignore
+/// let widget = Widget.new(..)
+///         .attribute1(..)
+///         .attribute2(..) 
+///         ..
+///         .build(..)
+/// ```
+pub trait WidgetBuilder: WidgetAction {
     fn new(name: &str) -> Self;
-    fn build(self, ui_state: &mut UIState, canvas: &mut Canvas) -> Self;
+    fn build(self, ui_state: &mut UIState) -> Self;
 }
 
-pub struct WidgetSet {
-    pub widgets: Vec<Box<dyn Widget>>,
-    pub callback: Option<Box<dyn FnMut(&mut UIState)>>,
-}
+/// This trait use for get WidgetAction trait and WidgetRender trait together
+pub trait Widget<R>: WidgetAction +  WidgetRender<R> where  R: Renderer2D {
 
-impl WidgetSet {
-    pub fn new() -> Self {
-        Self {
-            widgets: Vec::new(),
-            callback: None,
-        }
-    }
-
-    pub fn update(&mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> bool {
-        let mut flag = false;
-
-        for widget in &mut self.widgets {
-            if widget.update(ui_state, canvas) {
-                if let Some(callback) = &mut self.callback {
-                    callback(ui_state);
-                    flag = true;
-                }
-            }
-        }
-
-        flag
-    }
 }
 
 #[derive(Copy, Clone)]
@@ -238,4 +224,3 @@ pub fn area(anchor: Anchor, width: WindowUnit<f32>, height: WindowUnit<f32>, win
         bottom_right_point: [x + w, y + h],
     }
 }
-

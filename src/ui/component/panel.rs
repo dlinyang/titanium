@@ -1,16 +1,16 @@
 use super::super::*;
 use rmu::raw::Vec4f;
 use crate::base::utils::*;
-use crate::renderer::canvas::*;
 use crate::event::*;
 use crate::event::utils::*;
-use crate::graphics::Rectangle;
+use crate::graphics::{RoundRectangle, Graphics2d, RoundAngle};
 
 pub struct Panel {
     pub id: u64,
     pub anchor: Anchor,
     pub width: WindowUnit<f32>,
     pub height: WindowUnit<f32>,
+    pub round_angle: RoundAngle,
     pub area: Area,
     pub color: Vec4f,
     pub drag: Drag,
@@ -32,6 +32,11 @@ impl Panel {
         self.color = color;
         self
     }
+
+    pub fn with_round_angle(mut self, round_angle: RoundAngle) -> Self {
+        self.round_angle = round_angle;
+        self
+    }
 }
 
 impl WidgetBuilder for Panel {
@@ -41,21 +46,22 @@ impl WidgetBuilder for Panel {
             anchor: Anchor::default(),
             width: Default::default(),
             height: Default::default(),
+            round_angle: Default::default(),
             area: Default::default(),
             color: [1.0, 1.0, 1.0, 1.0],
             drag: Drag::new(MouseButton::Left),
         }
     }
 
-    fn build(mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> Self {
+    fn build(mut self, ui_state: &mut UIState) -> Self {
         self.area = area(self.anchor, self.width, self.height, ui_state.window_size);
-        canvas.update(self.layer());
+        self.round_angle.div(ui_state.window_size.height);
         self
     }
 }
 
-impl Widget for Panel {
-    fn update(&mut self, ui_state: &mut UIState, canvas: &mut Canvas) -> bool {
+impl WidgetAction for Panel {
+    fn update(&mut self, ui_state: &mut UIState) -> bool {
 
         self.drag.match_event(ui_state.event);
 
@@ -83,7 +89,6 @@ impl Widget for Panel {
 
                 self.area = area(self.anchor, self.width, self.height, ui_state.window_size);
 
-                canvas.update(self.layer());
                 true
             } else {
                 false
@@ -93,16 +98,26 @@ impl Widget for Panel {
         }
     }
 
-    fn layer(&self) ->  Layer {
+    fn id(&self) -> u64 {
+        self.id
+    }
+}
+
+use crate::renderer::Renderer2D;
+
+impl<R> WidgetRender<R> for Panel where R: Renderer2D {
+    fn render(&self, renderer: &mut R) {
         let anchor = self.area.top_left_point;
         let width = self.area.width();
         let height = self.area.height();
 
-        Layer::with_id( self.id)
-              .with_graphics(Rectangle::create(anchor, width, height, self.color, graphics::GraphicsType::PolygonFill).into())
-    }
+        let graphics = RoundRectangle::create(anchor, width, height, self.round_angle);
 
-    fn id(&self) -> u64 {
-        self.id
+        renderer.draw_polygon_fill(graphics.positions(), self.color);
+
     }
+}
+
+impl<R> Widget<R> for Panel where R: Renderer2D {
+
 }
