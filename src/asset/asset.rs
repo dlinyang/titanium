@@ -3,7 +3,6 @@ pub struct Asset {
     pub path: String,
 }
 
-use std::fs::*;
 
 impl Asset {
     pub fn load(&mut self) {

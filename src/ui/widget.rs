@@ -2,14 +2,18 @@ use rmu::raw::Vec2f;
 use crate::base::utils::*;
 use super::ui::UIState;
 
+pub struct W<R> where R: Canvas{
+    pub view: dyn Fn(&R),
+}
+
 pub trait WidgetAction {
     fn id(&self) -> u64;
     fn update(&mut self, ui_state: &mut UIState) -> bool;
 }
 
-use crate::renderer::Renderer2D;
+use crate::renderer::Canvas;
 
-pub trait WidgetRender<R> where R: Renderer2D {
+pub trait WidgetRender<R> where R: Canvas {
     fn render(&self, renderer: &mut R);
 }
 
@@ -27,7 +31,7 @@ pub trait WidgetBuilder: WidgetAction {
 }
 
 /// This trait use for get WidgetAction trait and WidgetRender trait together
-pub trait Widget<R>: WidgetAction +  WidgetRender<R> where  R: Renderer2D {
+pub trait Widget<R>: WidgetAction +  WidgetRender<R> where  R: Canvas {
 
 }
 

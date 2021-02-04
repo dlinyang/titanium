@@ -1,7 +1,8 @@
 use rmu::raw::{Vec2f, Vec3f};
 use rmu::vector::{Vector3,Vector2};
 
-#[derive(Debug,Copy, Clone)]
+//3d vertex coordination
+#[derive(Debug,Copy,Clone)]
 pub struct Vertex {
     pub position: Vec3f,
     pub normal: Vec3f,
@@ -33,35 +34,14 @@ impl From<Vector3> for Vertex {
     }
 }
 
-// use for 2d
-#[derive(Copy,Clone)]
+// 2d  Vertex coordination
+#[derive(Debug,Copy,Clone)]
 pub struct Position {
-    pub position: Vec2f,
-}
-
-impl Position {
-    #[inline]
-    pub fn new(position: Vec2f) -> Self {
-        Position {
-            position,
-        }
-    }
-}
-
-impl From<Vector2> for Position {
-    fn from(position: Vector2) -> Self {
-        Self::new(position.into())
-    }
-}
-
-// use for 2d with texture
-#[derive(Copy,Clone)]
-pub struct ImagePosition {
     pub position: Vec2f,
     pub tex_coordinate: Vec2f,
 }
 
-impl ImagePosition {
+impl Position {
     #[inline]
     pub fn new(position: Vec2f, tex_coordinate: Vec2f) -> Self {
         Self {
@@ -71,13 +51,13 @@ impl ImagePosition {
     }
 }
 
-impl From<Vec2f> for ImagePosition {
+impl From<Vec2f> for Position {
     fn from(position: Vec2f) -> Self {
         Self::new(position, [0.0, 0.0])
     }
 }
 
-impl From<Vector2> for ImagePosition {
+impl From<Vector2> for Position {
     fn from(position: Vector2) -> Self {
         Self::new(position.into(), [0.0, 0.0])
     }

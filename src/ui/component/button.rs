@@ -131,9 +131,9 @@ impl WidgetAction for Button  {
     }
 }
 
-use crate::renderer::{Renderer2D, Text};
+use crate::renderer::{Canvas, Text};
 
-impl<R> WidgetRender<R> for Button where R: Renderer2D{
+impl<R> WidgetRender<R> for Button where R: Canvas{
     fn render(&self, renderer: &mut R) { 
         let [r,g,b,a] = self.color;
         let color = if self.is_hover { 
@@ -151,12 +151,14 @@ impl<R> WidgetRender<R> for Button where R: Renderer2D{
         let graphics = RoundRectangle::create(self.area.top_left_point, width, height, self.round_angle);
 
         let text = Text::create( self.label.clone(), self.font.clone(), text_anchor, Size::uniform(self.font_size), text_width);
-
-        renderer.draw_polygon_fill(graphics.positions(), color);
-        renderer.draw_text(&text, self.font_color);
+        
+        renderer.set_color(color);
+        renderer.draw_polygon_fill(graphics.positions());
+        renderer.set_font_color(font_color);
+        renderer.draw_text(&text);
     }
 }
 
-impl<R> Widget<R> for Button where R: Renderer2D {
+impl<R> Widget<R> for Button where R: Canvas {
 
 }

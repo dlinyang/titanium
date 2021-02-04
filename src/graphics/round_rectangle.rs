@@ -1,5 +1,5 @@
 use rmu::raw::Vec2f;
-use super::Graphics2d;
+use super::Graphics;
 
 #[derive(Clone,Copy)]
 pub struct RoundRectangle {
@@ -29,7 +29,7 @@ impl RoundRectangle {
     }
 }
 
-impl Graphics2d for RoundRectangle {
+impl Graphics for RoundRectangle {
     fn positions(&self) -> Vec<Vec2f> {
         self.round_angle.position(self.anchor[0], self.anchor[1], self.w, self.h)
     }

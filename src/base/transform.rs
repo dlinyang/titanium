@@ -4,7 +4,7 @@ use rmu::matrix::Matrix4x4;
 #[derive(Copy,Clone)]
 pub struct Transform {
     pub rotation: Vec3f,
-    pub position: Vec3f,
+    pub location: Vec3f,
     pub scale: Vec3f,
 }
 
@@ -12,13 +12,13 @@ impl Transform {
     pub fn new() -> Self {
         Self {
             rotation: [0.0,0.0,0.0],
-            position: [0.0,0.0,0.0],
+            location: [0.0,0.0,0.0],
             scale: [1.0,1.0,1.0],
         }
     }
 
     pub fn transform(&self) -> Matrix4x4 {
-        let position = Self::position(self.position[0], self.position[1], self.position[2]);
+        let position = Self::position(self.location[0], self.location[1], self.location[2]);
         let rotation = Self::rotation(self.rotation[0], self.rotation[1], self.rotation[2]);
         let scale = Self::scale(self.scale[0], self.scale[1], self.scale[2]);
 
@@ -26,9 +26,9 @@ impl Transform {
     }
 
     pub fn translate(&mut self, x: f32, y: f32, z: f32) {
-        self.position[0] += x;
-        self.position[1] += y;
-        self.position[2] += z;
+        self.location[0] += x;
+        self.location[1] += y;
+        self.location[2] += z;
     }
 
     pub fn add_rotate(&mut self, x: f32, y: f32, z: f32) {
@@ -68,6 +68,14 @@ impl Transform {
         )
     }
 
+}
+
+use rmu::raw::Mat4f;
+
+impl From<Transform> for Mat4f {
+    fn from(transform: Transform) -> Self {
+        transform.transform().into()
+    }
 }
 
 use rmu::raw::Vec2f;

@@ -103,9 +103,9 @@ impl WidgetAction for Panel {
     }
 }
 
-use crate::renderer::Renderer2D;
+use crate::renderer::Canvas;
 
-impl<R> WidgetRender<R> for Panel where R: Renderer2D {
+impl<R> WidgetRender<R> for Panel where R: Canvas {
     fn render(&self, renderer: &mut R) {
         let anchor = self.area.top_left_point;
         let width = self.area.width();
@@ -118,6 +118,6 @@ impl<R> WidgetRender<R> for Panel where R: Renderer2D {
     }
 }
 
-impl<R> Widget<R> for Panel where R: Renderer2D {
+impl<R> Widget<R> for Panel where R: Canvas {
 
 }

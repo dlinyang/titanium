@@ -3,7 +3,7 @@ use rmu::vector::Vector3;
 
 pub fn cube(length: f32) -> Mesh {
     let half_l = length / 2.0;
-
+    // clockwise
     let v1 = Vector3::new(half_l, -half_l, half_l);
     let v2 = Vector3::new(half_l, half_l, half_l);
     let v3 = Vector3::new(half_l, half_l, -half_l);
@@ -24,12 +24,15 @@ pub fn cube(length: f32) -> Mesh {
     Mesh {
         vertices: vec![v1,v2,v3,v4,v5,v6,v7,v8],
         vertex_normals: vec![front, back, top, right, bottom, left],
+        edges: vec![[1,2],[2,3],[3,4],[4,1],
+                    [5,6],[6,7],[7,8],[8,5],
+                    [1,5],[2,6],[3,7],[4,8]],
         faces: vec![vec![[1,1,0], [2,1,0], [3,1,0], [4,1,0]],
-                    vec![[5,2,0], [6,2,0], [7,2,0], [8,2,0]], 
-                    vec![[1,3,0], [2,3,0], [6,3,0], [5,3,0]], 
-                    vec![[2,4,0], [3,4,0], [7,4,0], [6,4,0]], 
-                    vec![[3,5,0], [4,6,0], [8,5,0], [7,5,0]], 
-                    vec![[4,6,0], [1,6,0], [5,6,0], [8,6,0]]],
+                    vec![[5,2,0], [8,2,0], [7,2,0], [6,2,0]], 
+                    vec![[1,3,0], [5,3,0], [6,3,0], [2,3,0]], 
+                    vec![[2,4,0], [6,4,0], [7,4,0], [3,4,0]], 
+                    vec![[3,5,0], [7,5,0], [8,5,0], [4,6,0]], 
+                    vec![[4,6,0], [8,6,0], [5,6,0], [1,6,0]]],
         uv: Vec::new(),
     }
 } 

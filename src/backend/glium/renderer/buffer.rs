@@ -11,7 +11,7 @@ use glium::Display;
 use std::rc::Rc;
 
 pub struct DataBuffer {
-    pub scene_data    : Rc<SceneBuffer>,
+    pub scene_buffer    : Rc<SceneBuffer>,
     pub light_buffer  : Rc<LightBuffer>,
     pub texture_buffer: HashMap<String,Texture2d>,
     pub depth_texture : Option<DepthTexture2d>,
@@ -22,7 +22,7 @@ pub struct DataBuffer {
 impl DataBuffer {
     pub fn new(display: &Display) -> Self {
         Self {
-            scene_data: Rc::new(Default::default()),
+            scene_buffer: Rc::new(Default::default()),
             light_buffer: Rc::new(LightBuffer::new(display)),
             texture_buffer: HashMap::new(),
             depth_texture: None,
@@ -40,7 +40,6 @@ implement_uniform_block!(Light,color_flux,position,direction_type,cut_off,outer_
 pub struct LightBuffer {
     pub lights: HashMap<String,Light>,
     pub shadow_maps: HashMap<String,DepthTexture2d>,
-    pub shadow_map_views: Vec<Mat4f>,
     pub shadow_map_size: u32,
     pub buffer: Buffer<[Light]>,
 }
@@ -50,7 +49,6 @@ impl LightBuffer {
         Self {
             lights: HashMap::new(),
             shadow_maps: HashMap::new(),
-            shadow_map_views: Vec::new(),
             shadow_map_size: 512,
             buffer: Buffer::new(display, vec![Light::new()].as_slice(), BufferType::UniformBuffer, BufferMode::default()).unwrap(),
         }
@@ -66,38 +64,51 @@ impl LightBuffer {
 }
 
 pub struct SceneBuffer {
-    pub data: HashMap<String,SceneData>,
-    pub same_material_data: HashMap<String,HashMap<String,()>>,
+    pub objects: HashMap<String,RenderObject>,
+    pub meshes: HashMap<String,RenderMesh>,
+    pub materials: HashMap<String,Material>,
+    pub same_material_objects: HashMap<String,HashMap<String,()>>,
 }
 
 impl Default for SceneBuffer {
     fn default() -> Self {
         Self {
-            data: HashMap::new(),
-            same_material_data: HashMap::new(),
+            objects: HashMap::new(),
+            meshes: HashMap::new(),
+            materials: HashMap::new(),
+            same_material_objects: HashMap::new(),
         }
     }
 }
 
-pub struct SceneData {
-    pub vertex_buffer: VertexBuffer<Vertex>,
-    pub indices: IndexBuffer<u32>,
-    pub material: Material,
+pub struct RenderObject {
+    pub mesh_name: String,
+    pub material_name: String,
     pub transform: Mat4f,
 }
 
-impl SceneData{
-    pub fn new(
-        vertex_buffer: VertexBuffer<Vertex>,
-        indices: IndexBuffer<u32>,
-        material: Material,
-        transform: [[f32; 4]; 4],
-    ) -> Self {
+impl RenderObject {
+    #[inline]
+    pub fn new(mesh_name: String, material_name: String, transform: [[f32; 4]; 4]) -> Self {
+        Self {
+            mesh_name,
+            material_name,
+            transform,
+        }
+    }
+}
+
+pub struct RenderMesh {
+    pub vertex_buffer: VertexBuffer<Vertex>,
+    pub index_buffer: IndexBuffer<u32>,
+}
+
+impl RenderMesh {
+    #[inline]
+    pub fn new(vertex_buffer: VertexBuffer<Vertex>, index_buffer: IndexBuffer<u32>) -> Self {
         Self {
             vertex_buffer,
-            indices,
-            material,
-            transform,
+            index_buffer,
         }
     }
 }

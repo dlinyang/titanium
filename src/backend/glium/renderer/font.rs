@@ -1,7 +1,8 @@
 use glium::texture::Texture2d;
 use rusttype::gpu_cache::Cache;
 use rusttype::{point, vector, Font, PositionedGlyph, Rect, Scale};
-use crate::base::ImagePosition;
+use crate::base::Position;
+use rmu::raw::Vec2f;
 
 use std::borrow::Cow;
 
@@ -43,11 +44,10 @@ fn layout_paragraph<'a>(font: &'a Font, scale: Scale, width: u32, text: &str) ->
 }
 
 use glium::{VertexBuffer, IndexBuffer};
-use crate::renderer::Text;
+use crate::base::utils::Size;
 
-pub fn load_text (text: &Text, font: &Font, display: &glium::Display) ->  (VertexBuffer<ImagePosition>,IndexBuffer<u32>,Texture2d) {
+pub fn load_text (text: &str, size: Size, width: f32, position: Vec2f,font: &Font, display: &glium::Display) ->  (VertexBuffer<Position>,IndexBuffer<u32>,Texture2d) {
     let scale = display.gl_window().window().scale_factor();
-    let (width,_):(f32,_) = display.gl_window().window().inner_size().into();
     let (w, h) = ((512.0 * scale) as u32, (512.0 * scale) as u32);
     let mut cache = Cache::builder().dimensions(w, h).build();
 
@@ -65,11 +65,11 @@ pub fn load_text (text: &Text, font: &Font, display: &glium::Display) ->  (Verte
 
     let glyphs = layout_paragraph(font, 
                                   Scale{
-                                      x:text.size.width, 
-                                      y: text.size.height
+                                      x: size.width, 
+                                      y: size.height
                                     }, 
-                                  (text.width * width) as u32, 
-                                  text.context.as_str());
+                                  width as u32, 
+                                  text);
 
     for glyph in &glyphs {
         cache.queue_glyph(0, glyph.clone());
@@ -97,8 +97,8 @@ pub fn load_text (text: &Text, font: &Font, display: &glium::Display) ->  (Verte
         (w as f32, h as f32)
     };
 
-    let origin = point(text.position[0] * 2.0, -text.position[1] * 2.0);
-    let vertices: Vec<ImagePosition> = glyphs
+    let origin = point(position[0] * 2.0, - position[1] * 2.0);
+    let vertices: Vec<Position> = glyphs
         .iter()
         .flat_map(|g| {
             if let Ok(Some((uv_rect, screen_rect))) = cache.rect_for(0, g) {
@@ -114,10 +114,10 @@ pub fn load_text (text: &Text, font: &Font, display: &glium::Display) ->  (Verte
                             1.0 - screen_rect.max.y as f32 / screen_height - 0.5
                             )) * 2.0,
                 };
-                vec![ImagePosition::new([gl_rect.min.x,gl_rect.min.y], [uv_rect.min.x,uv_rect.min.y]),
-                     ImagePosition::new([gl_rect.min.x,gl_rect.max.y], [uv_rect.min.x,uv_rect.max.y]),
-                     ImagePosition::new([gl_rect.max.x,gl_rect.max.y], [uv_rect.max.x,uv_rect.max.y]),
-                     ImagePosition::new([gl_rect.max.x,gl_rect.min.y], [uv_rect.max.x,uv_rect.min.y])]
+                vec![Position::new([gl_rect.min.x,gl_rect.min.y], [uv_rect.min.x,uv_rect.min.y]),
+                     Position::new([gl_rect.min.x,gl_rect.max.y], [uv_rect.min.x,uv_rect.max.y]),
+                     Position::new([gl_rect.max.x,gl_rect.max.y], [uv_rect.max.x,uv_rect.max.y]),
+                     Position::new([gl_rect.max.x,gl_rect.min.y], [uv_rect.max.x,uv_rect.min.y])]
             } 
             else {
                 Vec::new()

@@ -12,7 +12,7 @@ pub enum PropertyValue {
 
 #[derive(Clone)]
 pub struct Material {
-    pub name: String,
+    pub name: String, // shader name
     pub property: Vec<(String,PropertyValue)>,
 }
 
@@ -23,36 +23,6 @@ impl Material {
 
     pub fn property(&self) -> Vec<(String,PropertyValue)> {
         self.property.clone()
-    }
-}
-
-pub fn color_canvas(color: Vec4f) -> Material {
-    let name: String = "Color Canvas".into();
-    let property: Vec<(String, PropertyValue)> = vec![("color".into(), PropertyValue::Vec4(color))];
-
-    Material {
-        name,
-        property,
-    }
-}
-
-pub fn image_canvas(color: Vec4f) -> Material {
-    let name: String = "Image Canvas".into();
-    let property: Vec<(String, PropertyValue)> = vec![("color".into(), PropertyValue::Vec4(color))];
-
-    Material {
-        name,
-        property,
-    }
-}
-
-pub fn font_canvas(color: Vec4f) -> Material {
-    let name: String = "Font Canvas".into();
-    let property: Vec<(String, PropertyValue)> = vec![("color".into(), PropertyValue::Vec4(color))];
-
-    Material {
-        name,
-        property,
     }
 }
 

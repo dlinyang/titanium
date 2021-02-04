@@ -39,10 +39,6 @@ pub fn position() -> String {
     String::from(include_str!("glsl/position.glsl"))
 }
 
-pub fn image_position() -> String {
-    String::from(include_str!("glsl/image_position.glsl"))
-}
-
 pub fn font() -> String {
     String::from(include_str!("glsl/font.glsl"))
 }

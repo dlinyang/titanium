@@ -1,9 +1,9 @@
-use crate::base::ImagePosition;
+use crate::base::Position;
 use glium::Display;
 use glium::{VertexBuffer, IndexBuffer, Program};
 
 pub struct ScreenData {
-    pub vertex_buffer: VertexBuffer<ImagePosition>,
+    pub vertex_buffer: VertexBuffer<Position>,
     pub index_buffer: IndexBuffer<u32>,
     pub shadow_map: Program,
     pub color: Program,
@@ -17,10 +17,10 @@ impl ScreenData {
     pub fn new(display: &Display) -> Self {
         let vertex_buffer = glium::VertexBuffer::new(
             display,
-            &[ImagePosition::new([-1.0, -1.0], [0.0, 0.0]),
-              ImagePosition::new([-1.0,  1.0], [0.0, 1.0]), 
-              ImagePosition::new([ 1.0,  1.0], [1.0, 1.0]),
-              ImagePosition::new([ 1.0, -1.0], [1.0, 0.0])]
+            &[Position::new([-1.0, -1.0], [0.0, 0.0]),
+              Position::new([-1.0,  1.0], [0.0, 1.0]), 
+              Position::new([ 1.0,  1.0], [1.0, 1.0]),
+              Position::new([ 1.0, -1.0], [1.0, 0.0])]
         ).unwrap();
 
         let index_buffer = IndexBuffer::new(display, glium::index::PrimitiveType::TrianglesList, &[0,1,2,0,2,3]).unwrap();
@@ -28,7 +28,6 @@ impl ScreenData {
         let version = glsl_version(4, 60);
 
         let position = glsl(version.clone(), String::new(), position());
-        let image_position = glsl(version.clone(), String::new(), image_position());
         let color_code = glsl(version.clone(), String::new(), color());
         let image_code = glsl(version.clone(), String::new(), image());
         let font_code = glsl(version.clone(), String::new(), font());
@@ -45,11 +44,11 @@ impl ScreenData {
         ).unwrap();
 
         let image = Program::from_source(
-            display, image_position.as_str(), image_code.as_str(), None
+            display, position.as_str(), image_code.as_str(), None
         ).unwrap();
 
         let font = Program::from_source(
-            display, image_position.as_str(), font_code.as_str(), None
+            display, position.as_str(), font_code.as_str(), None
         ).unwrap();
 
         Self {

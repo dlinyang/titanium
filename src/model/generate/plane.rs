@@ -14,7 +14,8 @@ pub fn plane(length: f32) -> Mesh {
     Mesh {
         vertices: vec![v1,v2,v3,v4],
         vertex_normals: vec![up],
-        faces: vec![vec![[1,1,0], [2,1,0], [3,1,0], [4,1,0]]],
         uv: Vec::new(),
+        edges: vec![[1,2],[2,3],[3,4],[4,1]],
+        faces: vec![vec![[1,1,0], [2,1,0], [3,1,0], [4,1,0]]],
     }
 } 

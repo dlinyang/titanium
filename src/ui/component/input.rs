@@ -103,8 +103,8 @@ impl WidgetAction for Input {
     }
 }
 
-use crate::renderer::{Renderer2D, Text};
-impl<R> WidgetRender<R> for Input where R: Renderer2D {
+use crate::renderer::{Canvas, Text};
+impl<R> WidgetRender<R> for Input where R: Canvas {
     fn render(&self, renderer: &mut R) {
         let anchor = self.area.top_left_point;
         let width = self.area.width();
@@ -118,6 +118,6 @@ impl<R> WidgetRender<R> for Input where R: Renderer2D {
     }
 }
 
-impl<R> Widget<R> for Input where R: Renderer2D {
+impl<R> Widget<R> for Input where R: Canvas {
 
 }

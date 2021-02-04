@@ -3,6 +3,7 @@ pub mod application;
 
 pub mod base;
 pub mod event;
+pub mod asset;
 pub mod renderer;
 
 pub mod scene;

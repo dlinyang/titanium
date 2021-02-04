@@ -27,19 +27,22 @@ impl RenderPassRenderer<SceneUniformData<'_>,Program> for GLRenderer {
         match &render_pass.render_pass_type {
             RenderPassType::Pass => {
                 if let Some(frame) = &mut self.frame {
-                    if let Some(same_material_data) = self.data_buffer.scene_data.same_material_data.get(material_name) {
-                        for data_name in same_material_data.keys() {
-                            let data = self.data_buffer.scene_data.data.get(data_name).unwrap();
+                    if let Some(same_material_objects) = self.data_buffer.scene_buffer.same_material_objects.get(material_name) {
+                        for object_name in same_material_objects.keys() {
+                            let object = self.data_buffer.scene_buffer.objects.get(object_name).unwrap();
+                            let material = self.data_buffer.scene_buffer.materials.get(&object.material_name).unwrap();
                    
                             let uniforms = SceneUniform::new(
                                 uniform_data, 
-                                data.transform, 
-                                data.material.property(), 
+                                object.transform, 
+                                material.property(), 
                                 render_pass.pass_option.lighting, 
                                 &self.data_buffer.texture_buffer
                             );
-                   
-                            frame.draw(&data.vertex_buffer, &data.indices, &render_pass.shader, &uniforms, &parameters).unwrap();
+
+                            if let Some(mesh) = self.data_buffer.scene_buffer.meshes.get(&object.mesh_name) {
+                                frame.draw(&mesh.vertex_buffer, &mesh.index_buffer, &render_pass.shader, &uniforms, &parameters).unwrap();
+                            }
                         }
                     }
                 }
@@ -81,19 +84,23 @@ impl RenderPassRenderer<SceneUniformData<'_>,Program> for GLRenderer {
 
                 let mut frame = SimpleFrameBuffer::with_depth_buffer(&self.display, texture_ref, depth_ref).unwrap();
 
-                if let Some(same_material_data) = self.data_buffer.scene_data.same_material_data.get(material_name) {
-                    for data_name in same_material_data.keys() {
-                        let data = self.data_buffer.scene_data.data.get(data_name).unwrap();
+                if let Some(same_material_objects) = self.data_buffer.scene_buffer.same_material_objects.get(material_name) {
+                    for object_name in same_material_objects.keys() {
+                            let object = self.data_buffer.scene_buffer.objects.get(object_name).unwrap();
+                            let material = self.data_buffer.scene_buffer.materials.get(&object.material_name).unwrap();
+                   
+                            let uniforms = SceneUniform::new(
+                                uniform_data, 
+                                object.transform, 
+                                material.property(), 
+                                render_pass.pass_option.lighting, 
+                                &self.data_buffer.texture_buffer
+                            );
 
-                        let uniforms = SceneUniform::new(
-                            uniform_data, data.transform, 
-                            data.material.property(), 
-                            render_pass.pass_option.lighting, 
-                            &self.data_buffer.texture_buffer
-                        );
-            
-                        frame.draw(&data.vertex_buffer, &data.indices, &render_pass.shader, &uniforms, &parameters).unwrap();
-                    }
+                            if let Some(mesh) = self.data_buffer.scene_buffer.meshes.get(&object.mesh_name) {
+                                frame.draw(&mesh.vertex_buffer, &mesh.index_buffer, &render_pass.shader, &uniforms, &parameters).unwrap();
+                            }
+                        }
                 }
 
                 uniform_data.render_target = Some(name.clone());
@@ -144,20 +151,23 @@ impl RenderPassRenderer<SceneUniformData<'_>,Program> for GLRenderer {
 
                 let mut frame = MultiOutputFrameBuffer::with_depth_buffer(&self.display, frame_output, depth_ref).unwrap();
 
-                if let Some(same_material_data) = self.data_buffer.scene_data.same_material_data.get(material_name) {
-                    for data_name in same_material_data.keys() {
-                        let data = self.data_buffer.scene_data.data.get(data_name).unwrap();
+                if let Some(same_material_objects) = self.data_buffer.scene_buffer.same_material_objects.get(material_name) {
+                    for object_name in same_material_objects.keys() {
+                            let object = self.data_buffer.scene_buffer.objects.get(object_name).unwrap();
+                            let material = self.data_buffer.scene_buffer.materials.get(&object.material_name).unwrap();
+                   
+                            let uniforms = SceneUniform::new(
+                                uniform_data, 
+                                object.transform, 
+                                material.property(), 
+                                render_pass.pass_option.lighting, 
+                                &self.data_buffer.texture_buffer
+                            );
 
-                        let uniforms = SceneUniform::new(
-                            uniform_data, 
-                            data.transform, 
-                            data.material.property(), 
-                            render_pass.pass_option.lighting, 
-                            &self.data_buffer.texture_buffer
-                        );
-
-                        frame.draw(&data.vertex_buffer, &data.indices, &render_pass.shader, &uniforms, &parameters).unwrap();
-                    }
+                            if let Some(mesh) = self.data_buffer.scene_buffer.meshes.get(&object.mesh_name) {
+                                frame.draw(&mesh.vertex_buffer, &mesh.index_buffer, &render_pass.shader, &uniforms, &parameters).unwrap();
+                            }
+                        }
                 }
 
                 uniform_data.multiple_render_target = multiple_render_target;

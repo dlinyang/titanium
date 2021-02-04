@@ -1,19 +1,18 @@
-use super::RenderData;
-use crate::base::material::Material;
+use super::data::GMesh;
 use crate::base::mesh::Mesh;
-use crate::base::Index;
+use crate::base::Indices;
 use crate::base::Vertex;
-use rmu::raw::Mat4f;
+use rmu::vector::Vector3;
 
-pub trait RenderMesh {
-    fn points(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self;
-    fn edges(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self;
-    fn flat(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self;
-    fn smooth(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self;
+pub trait MeshLoad {
+    fn points(mesh: &Mesh) -> Self;
+    fn edges(mesh: &Mesh) -> Self;
+    fn flat(mesh: &Mesh) -> Self;
+    fn smooth(mesh: &Mesh) -> Self;
 }
 
-impl RenderMesh for RenderData {
-    fn points(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self {
+impl MeshLoad for GMesh {
+    fn points(mesh: &Mesh) -> Self {
         let mut vertices: Vec<Vertex> = Vec::new();
         let mut indices: Vec<u32> = Vec::new();
 
@@ -42,13 +41,11 @@ impl RenderMesh for RenderData {
 
         Self::new(
             vertices,
-            Index::Points(indices),
-            material.clone(),
-            transform,
+            Indices::Points(indices),
         )
     }
 
-    fn edges(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self {
+    fn edges(mesh: &Mesh) -> Self {
         let mut vertices: Vec<Vertex> = Vec::new();
 
         for vertex in &mesh.vertices {
@@ -85,10 +82,10 @@ impl RenderMesh for RenderData {
             indices.append(&mut edges_indices);
         }
 
-        Self::new(vertices, Index::EdgeLists(indices), material.clone(), transform)
+        Self::new(vertices, Indices::EdgeLists(indices))
     }
 
-    fn smooth(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self {
+    fn smooth(mesh: &Mesh) -> Self {
         let mut vertices: Vec<Vertex> = Vec::new();
 
         for vertex in &mesh.vertices {
@@ -108,7 +105,7 @@ impl RenderMesh for RenderData {
                     face_indices.push(v as u32);
 
                     if n != 0 {
-                        vertices[v].normal = mesh.vertex_normals[n].into();
+                        vertices[v].normal = (Vector3::from(vertices[v].normal) + mesh.vertex_normals[n]).into();
                     }
 
                     if uv != 0 {
@@ -121,10 +118,10 @@ impl RenderMesh for RenderData {
 
         let indices = get_faces_indices(faces);
 
-        Self::new(vertices, Index::TriangleFace(indices), material.clone(), transform)
+        Self::new(vertices, Indices::TriangleFace(indices))
     }
 
-    fn flat(mesh: &Mesh, material: &Material, transform: Mat4f) -> Self {
+    fn flat(mesh: &Mesh) -> Self {
         let mut vertices: Vec<Vertex> = Vec::new();
         let mut faces: Vec<Vec<u32>> = Vec::new();
 
@@ -160,7 +157,7 @@ impl RenderMesh for RenderData {
 
         let indices = get_faces_indices(faces);
 
-        Self::new(vertices, Index::TriangleFace(indices), material.clone(), transform)
+        Self::new(vertices, Indices::TriangleFace(indices))
     }
 }
 

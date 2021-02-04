@@ -3,14 +3,19 @@
 
 pub mod pipeline;
 pub mod renderer;
+
+pub mod canvas;
+
+pub mod data;
+pub mod mesh_load;
 pub mod light;
 pub mod image;
-pub mod text;
-pub mod scene;
 
 pub use renderer::*;
 pub use pipeline::*;
+
+pub use canvas::*;
+
+pub use data::*;
 pub use light::*;
 pub use image::*;
-pub use text::*;
-pub use scene::*;

@@ -1,6 +1,13 @@
 use rmu::raw::{Vec3f,Mat4f};
 use rmu::geometry::transform::rotation3;
 
+#[derive(Debug, Copy,Clone)]
+pub enum CameraMode {
+    Perspective,
+    Orthogonal,
+}
+
+
 #[derive(Debug,Copy,Clone)]
 pub struct Camera {
     pub look_from: Vector3,
@@ -108,11 +115,6 @@ impl Default for Camera {
             mode: CameraMode::Perspective,
         }
     }
-}
-#[derive(Debug, Copy,Clone)]
-pub enum CameraMode {
-    Perspective,
-    Orthogonal,
 }
 
 use rmu::vector::Vector3;

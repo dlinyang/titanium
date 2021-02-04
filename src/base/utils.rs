@@ -36,6 +36,7 @@ impl Default for Area {
     }
 }
 
+/// a data with height and width 
 #[derive(Debug,Clone,Copy)]
 pub struct Size {
     pub width: f32,

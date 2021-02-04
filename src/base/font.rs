@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::read;
 
+// font data map
 pub struct FontSet {
     pub data: HashMap<String,Vec<u8>>
 }

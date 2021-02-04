@@ -1,42 +1,45 @@
-use rmu::raw::{Vec2f, Vec4f};
-
-#[derive(Clone,Copy)]
-pub struct Circle {
-    ///anchor is center point
-    pub anchor: Vec2f,
-    pub radius: f32,
-}
-
-impl Circle {
-    pub fn new() -> Self {
-        Self {
-            anchor: [0.9, 0.9],
-            radius: 0.1,
-        }
-    }
-
-    pub fn create(anchor: Vec2f, radius: f32, color: Vec4f) -> Self {
-        Self {
-            anchor,
-            radius,
-        }
-    }
-}
+use rmu::raw::Vec2f;
 
 use std::f32::{consts::PI};
-// get the point of angle in a position
-fn circle(radius: f32 ,position: Vec2f, sampling_times: f32 ) -> Vec<Vec2f> {
 
-    let [x,y] = position;
-    let delta = PI * 2.0 / (sampling_times as f32);
+/// Get the points of circle,
+///  o is center of circle, r is radius, n is sampling time
+pub fn circle(o: Vec2f, r: f32, n: u32 ) -> Vec<Vec2f> {
+
+    let [x,y] = o;
+    let delta = PI * 2.0 / (n as f32);
     let mut pos: Vec<Vec2f> = Vec::new();
     
     let mut i: f32 = 0.0;
     while i < 2.0 * PI {
 
-        pos.push([x + i.cos() * radius, y + i.sin() * radius]);
+        pos.push([x + i.cos() * r, y + i.sin() * r]);
 
         i = i + delta;
     }
     pos
+}
+
+#[derive(Clone,Copy)]
+pub struct Circle {
+    ///postion is center point
+    pub o: Vec2f,
+    pub r: f32,
+}
+
+impl Circle {
+    pub fn new(o: Vec2f, r: f32) -> Self {
+        Self {
+            o,
+            r,
+        }
+    }
+}
+
+use super::Graphics;
+
+impl Graphics for Circle {
+    fn positions(&self) -> Vec<Vec2f> {
+        circle(self.o, self.r, (self.r * 100f32) as u32)
+    }
 }

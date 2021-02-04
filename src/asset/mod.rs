@@ -1,3 +1,5 @@
 pub mod asset;
+pub mod asset_manager;
 
-pub use mod asset::*;
+pub use asset::*;
+pub use asset_manager::*;

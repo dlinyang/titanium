@@ -29,8 +29,9 @@ pub fn grid(step: f32, row: usize, column: usize) -> Mesh {
     Mesh {
         vertices,
         vertex_normals: Vec::new(),
-        faces: Vec::new(),
         uv: Vec::new(),
+        edges: Vec::new(),
+        faces: Vec::new(),
     }
 
 }

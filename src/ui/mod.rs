@@ -8,4 +8,4 @@ pub use widget::*;
 pub use widget_set::*;
 
 
-pub mod component;
+//pub mod component;
